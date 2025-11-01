@@ -1,0 +1,43 @@
+# Fly.io deployment configuration for backend API
+# Deploy with: fly deploy --config apps/api/fly.toml
+
+app = "explain-my-game-api"
+primary_region = "iad"
+
+[build]
+  dockerfile = "Dockerfile"
+
+[env]
+  ENVIRONMENT = "production"
+  LOG_LEVEL = "INFO"
+  PORT = "8000"
+
+[http_service]
+  internal_port = 8000
+  force_https = true
+  auto_stop_machines = true
+  auto_start_machines = true
+  min_machines_running = 1
+  processes = ["app"]
+
+  [http_service.concurrency]
+    type = "requests"
+    hard_limit = 250
+    soft_limit = 200
+
+[[vm]]
+  cpu_kind = "shared"
+  cpus = 1
+  memory_mb = 512
+
+[deploy]
+  strategy = "rolling"
+
+# Health check
+[[services.http_checks]]
+  interval = "15s"
+  timeout = "5s"
+  grace_period = "30s"
+  path = "/health"
+  method = "GET"
+

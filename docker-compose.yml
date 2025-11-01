@@ -1,0 +1,71 @@
+services:
+  postgres:
+    image: pgvector/pgvector:pg16
+    container_name: emg_postgres
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-emg_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-emg_password}
+      POSTGRES_DB: ${POSTGRES_DB:-explain_my_game}
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-emg_user} -d ${POSTGRES_DB:-explain_my_game}"]
+      interval: 5s
+      timeout: 5s
+      retries: 5
+
+  api:
+    build:
+      context: ./apps/api
+      dockerfile: Dockerfile
+      args:
+        CACHEBUST: ${CACHEBUST:-2}
+    container_name: emg_api
+    restart: unless-stopped
+    environment:
+      DATABASE_URL: postgresql://${POSTGRES_USER:-emg_user}:${POSTGRES_PASSWORD:-emg_password}@postgres:5432/${POSTGRES_DB:-explain_my_game}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-}
+      CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY:-}
+      OPENAI_API_KEY: ${OPENAI_API_KEY:-}
+      ENVIRONMENT: ${ENVIRONMENT:-development}
+      LOG_LEVEL: ${LOG_LEVEL:-INFO}
+      SEED_DATABASE: ${SEED_DATABASE:-true}
+    ports:
+      - "8000:8000"
+    depends_on:
+      postgres:
+        condition: service_healthy
+    volumes:
+      - ./apps/api/src:/app/src:ro
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8000/health"]
+      interval: 10s
+      timeout: 5s
+      retries: 3
+      start_period: 30s
+
+  web:
+    build:
+      context: ./apps/web
+      dockerfile: Dockerfile
+      target: dev
+    container_name: emg_web
+    restart: unless-stopped
+    environment:
+      NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
+      NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY: ${NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY:-}
+      CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-}
+    ports:
+      - "3000:3000"
+    depends_on:
+      api:
+        condition: service_healthy
+    volumes:
+      - ./apps/web/src:/app/src:ro
+
+volumes:
+  postgres_data:
+
