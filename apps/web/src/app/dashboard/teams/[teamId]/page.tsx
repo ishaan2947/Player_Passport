@@ -20,9 +20,14 @@ export default function TeamDetailPage() {
   const [creating, setCreating] = useState(false);
   const [deleting, setDeleting] = useState(false);
   const [deletingGameId, setDeletingGameId] = useState<string | null>(null);
-  const [gameForm, setGameForm] = useState({
+  const [gameForm, setGameForm] = useState<{
+    opponent_name: string;
+    game_date: string;
+    location: string;
+    notes: string;
+  }>({
     opponent_name: "",
-    game_date: new Date().toISOString().split("T")[0],
+    game_date: new Date().toISOString().split("T")[0] ?? "",
     location: "",
     notes: "",
   });
@@ -69,7 +74,7 @@ export default function TeamDetailPage() {
       setGames([game, ...games]);
       setGameForm({
         opponent_name: "",
-        game_date: new Date().toISOString().split("T")[0],
+        game_date: new Date().toISOString().split("T")[0] ?? "",
         location: "",
         notes: "",
       });
@@ -458,7 +463,7 @@ export default function TeamDetailPage() {
               >
                 <div className="flex items-center gap-3">
                   <div className="flex h-9 w-9 items-center justify-center rounded-full bg-primary/10 text-sm font-medium text-primary">
-                    {(member.user_email || "U")[0].toUpperCase()}
+                    {(member.user_email ?? "U").charAt(0).toUpperCase()}
                   </div>
                   <div>
                     <p className="font-medium">{member.user_email || "Unknown"}</p>

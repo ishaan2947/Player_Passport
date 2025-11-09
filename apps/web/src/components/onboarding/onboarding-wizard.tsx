@@ -45,7 +45,7 @@ export function OnboardingWizard({ onComplete, onSkip }: OnboardingWizardProps) 
   
   // Step 3: Game creation
   const [opponentName, setOpponentName] = useState("");
-  const [gameDate, setGameDate] = useState(new Date().toISOString().split("T")[0]);
+  const [gameDate, setGameDate] = useState<string>(new Date().toISOString().split("T")[0] ?? "");
   const [location, setLocation] = useState("");
   const [createdGame, setCreatedGame] = useState<{ id: string } | null>(null);
   
