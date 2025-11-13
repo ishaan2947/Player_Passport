@@ -73,33 +73,22 @@ export const viewport: Viewport = {
 /**
  * SECURITY NOTE:
  * --------------
- * Authentication bypass is ONLY allowed in LOCAL DEVELOPMENT.
+ * Authentication is handled at runtime by middleware.ts
  * 
  * In production (NODE_ENV=production):
  * - Clerk keys MUST be configured
- * - App will fail to build without proper auth
- * - No silent bypass is allowed
+ * - Middleware will block requests without auth
  * 
  * In development (NODE_ENV=development):
  * - App works without Clerk keys for convenience
  * - This is for local development only
  */
-const isProduction = process.env.NODE_ENV === "production";
 
 // Check if Clerk is properly configured with actual keys
 const hasClerkKeys = !!(
   process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
   process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.startsWith("pk_")
 );
-
-// SECURITY: Fail fast in production if auth is not configured
-if (isProduction && !hasClerkKeys) {
-  throw new Error(
-    "FATAL: Authentication is not configured in production!\n" +
-    "Set NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY environment variable.\n" +
-    "Authentication bypass is ONLY allowed in development mode."
-  );
-}
 
 export default async function RootLayout({
   children,

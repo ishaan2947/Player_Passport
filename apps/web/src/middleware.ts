@@ -21,24 +21,27 @@ const isProduction = process.env.NODE_ENV === "production";
 // Check if Clerk is properly configured with actual keys
 const hasClerkKeys = !!(
   process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY &&
-  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.startsWith("pk_") &&
-  process.env.CLERK_SECRET_KEY &&
-  process.env.CLERK_SECRET_KEY.startsWith("sk_")
+  process.env.NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY.startsWith("pk_")
 );
 
-// SECURITY: In production without auth keys, fail immediately
-// This check runs at module load time during build
-if (isProduction && !hasClerkKeys) {
-  throw new Error(
-    "FATAL: Authentication is not configured in production!\n" +
-    "Set NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY and CLERK_SECRET_KEY environment variables.\n" +
-    "Authentication bypass is ONLY allowed in development mode (NODE_ENV=development)."
-  );
-}
-
 export function middleware(_request: NextRequest) {
+  // SECURITY: In production without auth keys, fail at request time
+  // Note: We don't throw at module load time because that would break builds
+  if (isProduction && !hasClerkKeys) {
+    // In production without Clerk keys - return 500 error
+    return new NextResponse(
+      JSON.stringify({
+        error: "Authentication not configured",
+        message: "This application requires authentication. Please contact the administrator.",
+      }),
+      {
+        status: 500,
+        headers: { "Content-Type": "application/json" },
+      }
+    );
+  }
+
   // SECURITY: Only allow auth bypass in development mode
-  // In production, hasClerkKeys must be true (enforced above)
   if (!hasClerkKeys && !isProduction) {
     // Development mode without Clerk keys - allow all routes
     return NextResponse.next();
