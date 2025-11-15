@@ -178,6 +178,12 @@ jobs:
 
   # Deploy to staging
   # Triggers on push to develop branch
+  # NOTE: Requires these secrets to be configured in GitHub:
+  # - FLY_API_TOKEN: Fly.io API token
+  # - FLY_APP_NAME_STAGING: Name of your staging Fly.io app
+  # - VERCEL_TOKEN: Vercel API token
+  # - VERCEL_ORG_ID: Vercel organization ID
+  # - VERCEL_PROJECT_ID: Vercel project ID
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
@@ -191,6 +197,31 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      # Validate required secrets are configured
+      - name: Validate deployment secrets
+        run: |
+          missing_secrets=""
+          if [ -z "${{ secrets.FLY_API_TOKEN }}" ]; then
+            missing_secrets="$missing_secrets FLY_API_TOKEN"
+          fi
+          if [ -z "${{ secrets.FLY_APP_NAME_STAGING }}" ]; then
+            missing_secrets="$missing_secrets FLY_APP_NAME_STAGING"
+          fi
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+            missing_secrets="$missing_secrets VERCEL_TOKEN"
+          fi
+          
+          if [ -n "$missing_secrets" ]; then
+            echo "❌ Missing required secrets:$missing_secrets"
+            echo ""
+            echo "Please configure the following secrets in GitHub:"
+            echo "  Settings > Secrets and variables > Actions > New repository secret"
+            echo ""
+            echo "See DEPLOYMENT.md for setup instructions."
+            exit 1
+          fi
+          echo "✅ All required secrets are configured"
 
       # Deploy Backend to Fly.io (Staging)
       - name: Setup Fly CLI
@@ -224,6 +255,12 @@ jobs:
 
   # Deploy to production
   # Triggers on push to main branch
+  # NOTE: Requires these secrets to be configured in GitHub:
+  # - FLY_API_TOKEN: Fly.io API token
+  # - FLY_APP_NAME_PRODUCTION: Name of your Fly.io app (e.g., explain-my-game-api)
+  # - VERCEL_TOKEN: Vercel API token
+  # - VERCEL_ORG_ID: Vercel organization ID
+  # - VERCEL_PROJECT_ID: Vercel project ID
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
@@ -237,6 +274,37 @@ jobs:
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
+
+      # Validate required secrets are configured
+      - name: Validate deployment secrets
+        run: |
+          missing_secrets=""
+          if [ -z "${{ secrets.FLY_API_TOKEN }}" ]; then
+            missing_secrets="$missing_secrets FLY_API_TOKEN"
+          fi
+          if [ -z "${{ secrets.FLY_APP_NAME_PRODUCTION }}" ]; then
+            missing_secrets="$missing_secrets FLY_APP_NAME_PRODUCTION"
+          fi
+          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
+            missing_secrets="$missing_secrets VERCEL_TOKEN"
+          fi
+          if [ -z "${{ secrets.VERCEL_ORG_ID }}" ]; then
+            missing_secrets="$missing_secrets VERCEL_ORG_ID"
+          fi
+          if [ -z "${{ secrets.VERCEL_PROJECT_ID }}" ]; then
+            missing_secrets="$missing_secrets VERCEL_PROJECT_ID"
+          fi
+          
+          if [ -n "$missing_secrets" ]; then
+            echo "❌ Missing required secrets:$missing_secrets"
+            echo ""
+            echo "Please configure the following secrets in GitHub:"
+            echo "  Settings > Secrets and variables > Actions > New repository secret"
+            echo ""
+            echo "See DEPLOYMENT.md for setup instructions."
+            exit 1
+          fi
+          echo "✅ All required secrets are configured"
 
       # Deploy Backend to Fly.io (Production)
       - name: Setup Fly CLI
