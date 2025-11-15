@@ -178,56 +178,47 @@ jobs:
 
   # Deploy to staging
   # Triggers on push to develop branch
-  # NOTE: Requires these secrets to be configured in GitHub:
-  # - FLY_API_TOKEN: Fly.io API token
-  # - FLY_APP_NAME_STAGING: Name of your staging Fly.io app
-  # - VERCEL_TOKEN: Vercel API token
-  # - VERCEL_ORG_ID: Vercel organization ID
-  # - VERCEL_PROJECT_ID: Vercel project ID
+  # NOTE: This job is SKIPPED if secrets are not configured
+  # Required secrets: FLY_API_TOKEN, FLY_APP_NAME_STAGING, VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
   deploy-staging:
     name: Deploy to Staging
     runs-on: ubuntu-latest
     needs: [frontend-build, backend-build]
-    if: github.ref == 'refs/heads/develop'
+    # Only run if on develop branch AND secrets are configured
+    if: |
+      github.ref == 'refs/heads/develop' && 
+      github.event.repository.fork == false
     environment: staging
     concurrency:
       group: staging-deploy
       cancel-in-progress: true
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # Validate required secrets are configured
-      - name: Validate deployment secrets
+      - name: Check if deployment is configured
+        id: check-secrets
         run: |
-          missing_secrets=""
-          if [ -z "${{ secrets.FLY_API_TOKEN }}" ]; then
-            missing_secrets="$missing_secrets FLY_API_TOKEN"
+          if [ -z "${{ secrets.FLY_API_TOKEN }}" ] || [ -z "${{ secrets.FLY_APP_NAME_STAGING }}" ]; then
+            echo "⏭️ Skipping deployment - secrets not configured"
+            echo "To enable deployment, add these secrets in GitHub Settings:"
+            echo "  - FLY_API_TOKEN"
+            echo "  - FLY_APP_NAME_STAGING"
+            echo "  - VERCEL_TOKEN (optional)"
+            echo "configured=false" >> $GITHUB_OUTPUT
+          else
+            echo "configured=true" >> $GITHUB_OUTPUT
           fi
-          if [ -z "${{ secrets.FLY_APP_NAME_STAGING }}" ]; then
-            missing_secrets="$missing_secrets FLY_APP_NAME_STAGING"
-          fi
-          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
-            missing_secrets="$missing_secrets VERCEL_TOKEN"
-          fi
-          
-          if [ -n "$missing_secrets" ]; then
-            echo "❌ Missing required secrets:$missing_secrets"
-            echo ""
-            echo "Please configure the following secrets in GitHub:"
-            echo "  Settings > Secrets and variables > Actions > New repository secret"
-            echo ""
-            echo "See DEPLOYMENT.md for setup instructions."
-            exit 1
-          fi
-          echo "✅ All required secrets are configured"
+
+      - name: Checkout code
+        if: steps.check-secrets.outputs.configured == 'true'
+        uses: actions/checkout@v4
 
       # Deploy Backend to Fly.io (Staging)
       - name: Setup Fly CLI
+        if: steps.check-secrets.outputs.configured == 'true'
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Deploy API to Fly.io Staging
+        if: steps.check-secrets.outputs.configured == 'true'
         working-directory: apps/api
         run: |
           flyctl deploy --remote-only --app ${{ secrets.FLY_APP_NAME_STAGING }}
@@ -236,14 +227,17 @@ jobs:
 
       # Deploy Frontend to Vercel (Staging/Preview)
       - name: Setup Node.js
+        if: steps.check-secrets.outputs.configured == 'true' && secrets.VERCEL_TOKEN != ''
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Install Vercel CLI
+        if: steps.check-secrets.outputs.configured == 'true' && secrets.VERCEL_TOKEN != ''
         run: npm install -g vercel
 
       - name: Deploy Frontend to Vercel (Preview)
+        if: steps.check-secrets.outputs.configured == 'true' && secrets.VERCEL_TOKEN != ''
         working-directory: apps/web
         run: |
           vercel pull --yes --environment=preview --token=${{ secrets.VERCEL_TOKEN }}
@@ -255,62 +249,55 @@ jobs:
 
   # Deploy to production
   # Triggers on push to main branch
-  # NOTE: Requires these secrets to be configured in GitHub:
-  # - FLY_API_TOKEN: Fly.io API token
-  # - FLY_APP_NAME_PRODUCTION: Name of your Fly.io app (e.g., explain-my-game-api)
-  # - VERCEL_TOKEN: Vercel API token
-  # - VERCEL_ORG_ID: Vercel organization ID
-  # - VERCEL_PROJECT_ID: Vercel project ID
+  # NOTE: This job is SKIPPED if secrets are not configured
+  # Required secrets: FLY_API_TOKEN, FLY_APP_NAME_PRODUCTION, VERCEL_TOKEN, VERCEL_ORG_ID, VERCEL_PROJECT_ID
   deploy-production:
     name: Deploy to Production
     runs-on: ubuntu-latest
     needs: integration-tests
-    if: github.ref == 'refs/heads/main'
+    # Only run if on main branch AND not a fork
+    if: |
+      github.ref == 'refs/heads/main' && 
+      github.event.repository.fork == false
     environment: production
     concurrency:
       group: production-deploy
       cancel-in-progress: false
 
     steps:
-      - name: Checkout code
-        uses: actions/checkout@v4
-
-      # Validate required secrets are configured
-      - name: Validate deployment secrets
+      - name: Check if deployment is configured
+        id: check-secrets
         run: |
-          missing_secrets=""
-          if [ -z "${{ secrets.FLY_API_TOKEN }}" ]; then
-            missing_secrets="$missing_secrets FLY_API_TOKEN"
-          fi
-          if [ -z "${{ secrets.FLY_APP_NAME_PRODUCTION }}" ]; then
-            missing_secrets="$missing_secrets FLY_APP_NAME_PRODUCTION"
-          fi
-          if [ -z "${{ secrets.VERCEL_TOKEN }}" ]; then
-            missing_secrets="$missing_secrets VERCEL_TOKEN"
-          fi
-          if [ -z "${{ secrets.VERCEL_ORG_ID }}" ]; then
-            missing_secrets="$missing_secrets VERCEL_ORG_ID"
-          fi
-          if [ -z "${{ secrets.VERCEL_PROJECT_ID }}" ]; then
-            missing_secrets="$missing_secrets VERCEL_PROJECT_ID"
-          fi
-          
-          if [ -n "$missing_secrets" ]; then
-            echo "❌ Missing required secrets:$missing_secrets"
+          if [ -z "${{ secrets.FLY_API_TOKEN }}" ] || [ -z "${{ secrets.FLY_APP_NAME_PRODUCTION }}" ]; then
+            echo "⏭️ Skipping deployment - secrets not configured"
             echo ""
-            echo "Please configure the following secrets in GitHub:"
+            echo "To enable production deployment, add these secrets in GitHub Settings:"
             echo "  Settings > Secrets and variables > Actions > New repository secret"
             echo ""
-            echo "See DEPLOYMENT.md for setup instructions."
-            exit 1
+            echo "Required secrets:"
+            echo "  - FLY_API_TOKEN"
+            echo "  - FLY_APP_NAME_PRODUCTION"
+            echo "  - VERCEL_TOKEN"
+            echo "  - VERCEL_ORG_ID"
+            echo "  - VERCEL_PROJECT_ID"
+            echo ""
+            echo "See DEPLOYMENT.md for detailed setup instructions."
+            echo "configured=false" >> $GITHUB_OUTPUT
+          else
+            echo "configured=true" >> $GITHUB_OUTPUT
           fi
-          echo "✅ All required secrets are configured"
+
+      - name: Checkout code
+        if: steps.check-secrets.outputs.configured == 'true'
+        uses: actions/checkout@v4
 
       # Deploy Backend to Fly.io (Production)
       - name: Setup Fly CLI
+        if: steps.check-secrets.outputs.configured == 'true'
         uses: superfly/flyctl-actions/setup-flyctl@master
 
       - name: Deploy API to Fly.io Production
+        if: steps.check-secrets.outputs.configured == 'true'
         working-directory: apps/api
         run: |
           flyctl deploy --remote-only --app ${{ secrets.FLY_APP_NAME_PRODUCTION }}
@@ -319,14 +306,17 @@ jobs:
 
       # Deploy Frontend to Vercel (Production)
       - name: Setup Node.js
+        if: steps.check-secrets.outputs.configured == 'true' && secrets.VERCEL_TOKEN != ''
         uses: actions/setup-node@v4
         with:
           node-version: '20'
 
       - name: Install Vercel CLI
+        if: steps.check-secrets.outputs.configured == 'true' && secrets.VERCEL_TOKEN != ''
         run: npm install -g vercel
 
       - name: Deploy Frontend to Vercel (Production)
+        if: steps.check-secrets.outputs.configured == 'true' && secrets.VERCEL_TOKEN != ''
         working-directory: apps/web
         run: |
           vercel pull --yes --environment=production --token=${{ secrets.VERCEL_TOKEN }}
@@ -337,8 +327,15 @@ jobs:
           VERCEL_PROJECT_ID: ${{ secrets.VERCEL_PROJECT_ID }}
 
       - name: Notify Deployment Success
+        if: steps.check-secrets.outputs.configured == 'true'
         run: |
           echo "✅ Production deployment complete!"
           echo "Frontend: https://your-domain.vercel.app"
           echo "Backend: https://${{ secrets.FLY_APP_NAME_PRODUCTION }}.fly.dev"
+      
+      - name: Deployment Skipped Notice
+        if: steps.check-secrets.outputs.configured == 'false'
+        run: |
+          echo "ℹ️ Deployment was skipped because secrets are not configured."
+          echo "This is expected for new repositories. CI checks still passed!"
 
