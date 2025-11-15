@@ -66,7 +66,7 @@ def validate_config() -> List[str]:
         if settings.frontend_url == "http://localhost:3000":
             warnings.append("FRONTEND_URL is still set to localhost")
 
-    # Development warnings
+    # Development/test warnings (non-production environments)
     else:
         if not settings.openai_api_key:
             warnings.append("OPENAI_API_KEY not set - AI reports will fail")

@@ -145,8 +145,9 @@ jobs:
           POSTGRES_PASSWORD=emg_password
           POSTGRES_DB=explain_my_game
           DATABASE_URL=postgresql://emg_user:emg_password@postgres:5432/explain_my_game
-          ENVIRONMENT=test
+          ENVIRONMENT=development
           SEED_DATABASE=true
+          OPENAI_API_KEY=sk-test-placeholder-for-ci
           EOF
 
       - name: Start services

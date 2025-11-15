@@ -31,7 +31,7 @@ class Settings(BaseSettings):
     clerk_publishable_key: str = ""
 
     # Application
-    environment: Literal["development", "staging", "production"] = "development"
+    environment: Literal["development", "staging", "production", "test"] = "development"
     log_level: str = "INFO"
     debug: bool = False
 
@@ -49,6 +49,10 @@ class Settings(BaseSettings):
     @property
     def is_development(self) -> bool:
         return self.environment == "development"
+
+    @property
+    def is_test(self) -> bool:
+        return self.environment == "test"
 
     @property
     def is_production(self) -> bool:
