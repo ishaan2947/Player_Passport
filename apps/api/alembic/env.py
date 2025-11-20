@@ -37,6 +37,11 @@ database_url = os.getenv(
     "postgresql://emg_user:emg_password@localhost:5432/explain_my_game"
 )
 
+# Fix for Fly.io/Heroku: postgres:// -> postgresql://
+# SQLAlchemy requires "postgresql://" but some providers use "postgres://"
+if database_url.startswith("postgres://"):
+    database_url = database_url.replace("postgres://", "postgresql://", 1)
+
 
 def run_migrations_offline() -> None:
     """
