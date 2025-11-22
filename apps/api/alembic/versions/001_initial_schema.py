@@ -19,8 +19,16 @@ depends_on: Union[str, Sequence[str], None] = None
 
 
 def upgrade() -> None:
-    # Enable pgvector extension
-    op.execute("CREATE EXTENSION IF NOT EXISTS vector")
+    # Try to enable pgvector extension (optional - not all Postgres instances have it)
+    # pgvector is used for knowledge_chunks embeddings (RAG features)
+    pgvector_available = False
+    try:
+        op.execute("CREATE EXTENSION IF NOT EXISTS vector")
+        pgvector_available = True
+    except Exception:
+        # pgvector not available - knowledge embeddings won't work but core app will
+        print("WARNING: pgvector extension not available. Knowledge embeddings disabled.")
+        pass
 
     # Create users table
     op.create_table(
@@ -256,10 +264,11 @@ def upgrade() -> None:
     )
     op.create_index("ix_knowledge_chunks_sport", "knowledge_chunks", ["sport"])
 
-    # Add vector column for embeddings using raw SQL
-    op.execute(
-        "ALTER TABLE knowledge_chunks ADD COLUMN embedding vector(1536)"
-    )
+    # Add vector column for embeddings using raw SQL (only if pgvector is available)
+    if pgvector_available:
+        op.execute(
+            "ALTER TABLE knowledge_chunks ADD COLUMN embedding vector(1536)"
+        )
 
 
 def downgrade() -> None:
