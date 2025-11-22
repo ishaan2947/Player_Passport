@@ -51,6 +51,11 @@ class User(Base):
         back_populates="user",
         cascade="all, delete-orphan",
     )
+    players: Mapped[list["Player"]] = relationship(  # noqa: F821
+        "Player",
+        back_populates="user",
+        cascade="all, delete-orphan",
+    )
 
     def __repr__(self) -> str:
         return f"<User {self.email}>"

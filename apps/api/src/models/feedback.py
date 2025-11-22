@@ -23,10 +23,18 @@ class Feedback(Base):
         default=uuid.uuid4,
         server_default=text("gen_random_uuid()"),
     )
-    report_id: Mapped[uuid.UUID] = mapped_column(
+    # Legacy: links to old team-based reports
+    report_id: Mapped[uuid.UUID | None] = mapped_column(
         UUID(as_uuid=True),
         ForeignKey("reports.id", ondelete="CASCADE"),
-        nullable=False,
+        nullable=True,
+        index=True,
+    )
+    # New: links to player development reports
+    player_report_id: Mapped[uuid.UUID | None] = mapped_column(
+        UUID(as_uuid=True),
+        ForeignKey("player_reports.id", ondelete="CASCADE"),
+        nullable=True,
         index=True,
     )
     rating_1_5: Mapped[int] = mapped_column(
@@ -49,10 +57,16 @@ class Feedback(Base):
     )
 
     # Relationships
-    report: Mapped["Report"] = relationship(  # noqa: F821
+    report: Mapped["Report | None"] = relationship(  # noqa: F821
         "Report",
         back_populates="feedback",
     )
+    player_report: Mapped["PlayerReport | None"] = relationship(  # noqa: F821
+        "PlayerReport",
+        back_populates="feedback",
+        foreign_keys=[player_report_id],
+    )
 
     def __repr__(self) -> str:
-        return f"<Feedback report={self.report_id} rating={self.rating_1_5}>"
+        report_ref = self.player_report_id or self.report_id
+        return f"<Feedback report={report_ref} rating={self.rating_1_5}>"

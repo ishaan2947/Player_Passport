@@ -19,6 +19,10 @@ from src.models import (
     Report,
     Feedback,
     KnowledgeChunk,
+    # Player Passport models
+    Player,
+    PlayerGame,
+    PlayerReport,
 )
 
 # Alembic Config object

@@ -35,6 +35,21 @@ from src.schemas.user import (
     UserOut,
 )
 
+# Player Passport schemas
+from src.schemas.player import (
+    PlayerCreate,
+    PlayerUpdate,
+    PlayerResponse,
+    PlayerWithGamesResponse,
+    PlayerGameCreate,
+    PlayerGameUpdate,
+    PlayerGameResponse,
+    PlayerReportCreate,
+    PlayerReportResponse,
+    PlayerReportWithPlayerResponse,
+    FullPlayerReport,
+)
+
 __all__ = [
     # Team
     "TeamCreate",
@@ -65,4 +80,16 @@ __all__ = [
     "FeedbackOut",
     # User
     "UserOut",
+    # Player Passport
+    "PlayerCreate",
+    "PlayerUpdate",
+    "PlayerResponse",
+    "PlayerWithGamesResponse",
+    "PlayerGameCreate",
+    "PlayerGameUpdate",
+    "PlayerGameResponse",
+    "PlayerReportCreate",
+    "PlayerReportResponse",
+    "PlayerReportWithPlayerResponse",
+    "FullPlayerReport",
 ]

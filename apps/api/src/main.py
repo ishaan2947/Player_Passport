@@ -1,5 +1,5 @@
 """
-Explain My Game - FastAPI Backend
+Player Passport - FastAPI Backend
 Main application entry point
 """
 
@@ -19,7 +19,13 @@ from src.core.config import get_settings
 from src.core.database import engine
 from src.core.exceptions import register_exception_handlers
 from src.core.validation import validate_config_or_exit
-from src.routers import teams_router, games_router, reports_router, users_router
+from src.routers import (
+    teams_router,
+    games_router,
+    reports_router,
+    users_router,
+    players_router,
+)
 
 # Initialize Sentry
 settings = get_settings()
@@ -96,15 +102,15 @@ async def lifespan(app: FastAPI):
     # Validate configuration on startup
     validate_config_or_exit()
 
-    logger.info("Starting Explain My Game API", environment=ENVIRONMENT)
+    logger.info("Starting Player Passport API", environment=ENVIRONMENT)
     yield
-    logger.info("Shutting down Explain My Game API")
+    logger.info("Shutting down Player Passport API")
 
 
 # Create FastAPI app
 app = FastAPI(
-    title="Explain My Game API",
-    description="Turn basketball game stats into clear coaching insights",
+    title="Player Passport API",
+    description="Turn youth basketball stats into trustworthy player development reports",
     version="1.0.0",
     lifespan=lifespan,
     docs_url="/docs" if ENVIRONMENT == "development" else None,
@@ -139,6 +145,7 @@ app.include_router(teams_router)
 app.include_router(games_router)
 app.include_router(reports_router)
 app.include_router(users_router)
+app.include_router(players_router)  # Player Passport
 
 
 @app.middleware("http")
@@ -234,8 +241,9 @@ async def health_check() -> HealthResponse:
 async def root() -> dict[str, Any]:
     """Root endpoint with API information."""
     return {
-        "name": "Explain My Game API",
+        "name": "Player Passport API",
         "version": "1.0.0",
+        "description": "Turn youth basketball stats into player development reports",
         "docs": "/docs" if ENVIRONMENT == "development" else None,
         "health": "/health",
     }
