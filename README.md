@@ -1,23 +1,32 @@
-# Explain My Game
+# Player Passport
 
-Turn basketball game stats into clear coaching insights using AI.
+Turn youth basketball stats into trustworthy, parent-friendly player development reports.
 
 ## Overview
 
-Explain My Game helps coaches, team captains, and parents transform raw game statistics into actionable coaching advice. Enter your game stats and notes, and receive a structured post-game report with:
+Player Passport helps parents, coaches, and players transform raw game statistics into actionable development insights. Enter your player's game stats and receive:
 
-- **Summary**: 2-4 sentence game overview
-- **Key Insights**: Stats-backed observations with confidence levels
-- **Action Items**: Specific, measurable improvements
-- **Practice Focus**: One theme for next practice
-- **Questions**: Prompts for next game discussion
+- **Development Report**: Strengths, growth areas, and trend insights
+- **Drill Plan**: 3-5 position-specific drills with success metrics  
+- **Player Profile**: Shareable summary with key stats
+- **Motivational Message**: Encouraging, age-appropriate feedback
+- **College Fit Indicator**: Cautious, stats-based development tracking
+
+### Trust & Safety First
+
+Player Passport is designed with trust as the top priority:
+- **No recruiting guarantees** or promises
+- **No invented stats** or fake data
+- **Age-appropriate**, practical advice
+- **Supportive** and professional tone
+- **Honest** about data limitations
 
 ## Tech Stack
 
 - **Frontend**: Next.js 14, TypeScript, TailwindCSS, shadcn/ui, Clerk Auth
 - **Backend**: FastAPI, Python 3.11+, SQLAlchemy 2.0, Pydantic v2
-- **Database**: PostgreSQL 16 with pgvector extension
-- **AI**: OpenAI GPT-4 for report generation
+- **Database**: PostgreSQL 16
+- **AI**: OpenAI GPT-4o for report generation
 - **Infrastructure**: Docker Compose for local development
 
 ## Prerequisites
@@ -35,7 +44,7 @@ Explain My Game helps coaches, team captains, and parents transform raw game sta
 ```bash
 # Clone the repository
 git clone <repo-url>
-cd explain-my-game
+cd player-passport
 
 # Copy environment files
 cp apps/api/env.example apps/api/.env
@@ -70,73 +79,42 @@ docker compose up --build
 docker compose up --build -d
 ```
 
-The API will automatically:
-1. Run database migrations (Alembic)
-2. Seed the database with demo data (1 user, 1 team, 1 game)
-
 ### 4. Verify Installation
 
-- **API Health**: http://localhost:8000/health (should return `{"status": "healthy"}`)
+- **API Health**: http://localhost:8000/health
 - **API Docs**: http://localhost:8000/docs
 - **Web App**: http://localhost:3000
 
-### 5. Database Management
+## API Endpoints
 
-```bash
-# Run migrations manually
-docker compose exec api alembic upgrade head
+### Player Passport (New)
 
-# Create a new migration
-docker compose exec api alembic revision --autogenerate -m "description"
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/players` | Create a player profile |
+| GET | `/players` | List all players |
+| GET | `/players/{id}` | Get player with games |
+| PATCH | `/players/{id}` | Update player profile |
+| DELETE | `/players/{id}` | Delete player |
+| POST | `/players/{id}/games` | Add a game to player |
+| GET | `/players/{id}/games` | List player's games |
+| PATCH | `/players/{id}/games/{game_id}` | Update game stats |
+| DELETE | `/players/{id}/games/{game_id}` | Delete a game |
+| POST | `/players/{id}/reports` | Generate development report |
+| GET | `/players/{id}/reports` | List player's reports |
+| GET | `/players/{id}/reports/{report_id}` | Get specific report |
+| GET | `/players/share/{share_token}` | Get shared report (public) |
+| PATCH | `/players/{id}/reports/{report_id}/share` | Toggle report sharing |
 
-# Seed database (if not auto-seeded)
-docker compose exec api python -m src.scripts.seed
+### Legacy Team-Based Endpoints
 
-# Connect to database
-docker compose exec postgres psql -U emg_user -d explain_my_game
-```
-
-## Local Development (Without Docker)
-
-### Backend
-
-```bash
-cd apps/api
-
-# Create virtual environment
-python -m venv venv
-source venv/bin/activate  # On Windows: .\venv\Scripts\activate
-
-# Install dependencies
-pip install -r requirements.txt
-
-# Copy and configure environment
-cp .env.example .env
-# Edit .env with your values
-
-# Run database migrations
-alembic upgrade head
-
-# Start development server
-uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
-```
-
-### Frontend
-
-```bash
-cd apps/web
-
-# Install dependencies
-npm install
-
-# Copy and configure environment
-cp .env.example .env
-cp .env.local.example .env.local
-# Edit .env.local with your values
-
-# Start development server
-npm run dev
-```
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/health` | Health check |
+| POST | `/teams` | Create a team |
+| GET | `/teams` | List user's teams |
+| POST | `/teams/{id}/games` | Create a game |
+| POST | `/games/{id}/generate-report` | Generate team report |
 
 ## Project Structure
 
@@ -147,115 +125,109 @@ npm run dev
 │   │   ├── src/
 │   │   │   ├── main.py      # Application entry point
 │   │   │   ├── models/      # SQLAlchemy models
+│   │   │   │   ├── player.py        # Player profile
+│   │   │   │   ├── player_game.py   # Individual game stats
+│   │   │   │   └── player_report.py # Development reports
 │   │   │   ├── schemas/     # Pydantic schemas
 │   │   │   ├── routers/     # API route handlers
+│   │   │   │   └── players.py       # Player Passport API
 │   │   │   ├── services/    # Business logic
+│   │   │   │   └── player_report_generator.py
 │   │   │   └── core/        # Config, auth, database
 │   │   ├── alembic/         # Database migrations
-│   │   ├── tests/           # Backend tests
 │   │   └── requirements.txt
 │   │
 │   └── web/                 # Next.js frontend
 │       ├── src/
 │       │   ├── app/         # App Router pages
 │       │   ├── components/  # React components
-│       │   ├── lib/         # Utilities
-│       │   └── types/       # TypeScript types
+│       │   └── lib/         # Utilities, API client
 │       └── package.json
 │
-├── docker-compose.yml       # Local development orchestration
+├── docker-compose.yml       # Local development
 └── README.md
 ```
 
-## API Endpoints
+## Report Schema
 
-| Method | Endpoint | Description |
-|--------|----------|-------------|
-| GET | `/health` | Health check |
-| POST | `/teams` | Create a team |
-| GET | `/teams` | List user's teams |
-| GET | `/teams/{team_id}` | Get team details |
-| POST | `/teams/{team_id}/games` | Create a game |
-| GET | `/teams/{team_id}/games` | List team's games |
-| GET | `/games/{game_id}` | Get game details |
-| POST | `/games/{game_id}/stats/basketball` | Add basketball stats |
-| POST | `/games/{game_id}/generate-report` | Generate AI report |
-| GET | `/reports/{report_id}` | Get report |
-| GET | `/games/{game_id}/report` | Get report by game |
-| POST | `/reports/{report_id}/feedback` | Submit feedback |
+The AI generates reports matching this structure:
 
-## Authentication
-
-This project uses [Clerk](https://clerk.com) for authentication. To set up:
-
-1. Create a Clerk application at https://dashboard.clerk.com
-2. Copy your API keys to the environment files
-3. Configure sign-in/sign-up URLs in Clerk dashboard
-
-### Development Authentication Bypass
-
-For local development without Clerk, you can use development tokens:
-
-```bash
-# Use the seeded user (after running seed script)
-curl -H "Authorization: Bearer dev_user_seed_001" http://localhost:8000/teams
-
-# The format is: dev_<clerk_user_id>
-# This only works when ENVIRONMENT=development
+```json
+{
+  "meta": {
+    "player_name": "string",
+    "report_window": "Dec 15-28, 2024",
+    "confidence_level": "low|medium|high",
+    "confidence_reason": "string",
+    "disclaimer": "string"
+  },
+  "growth_summary": "Parent-friendly paragraph...",
+  "development_report": {
+    "strengths": ["string", "string", "string"],
+    "growth_areas": ["string", "string", "string"],
+    "trend_insights": ["string", "string", "string", "string"],
+    "key_metrics": [{"label": "string", "value": "string", "note": "string"}],
+    "next_2_weeks_focus": ["string", "string", "string"]
+  },
+  "drill_plan": [{
+    "title": "string",
+    "why_this_drill": "string",
+    "how_to_do_it": "string",
+    "frequency": "string",
+    "success_metric": "string"
+  }],
+  "motivational_message": "string",
+  "college_fit_indicator_v1": {
+    "label": "Developing Guard (HS → D3 Track)",
+    "reasoning": "string",
+    "what_to_improve_to_level_up": ["string", "string"]
+  },
+  "player_profile": {
+    "headline": "string",
+    "player_info": {...},
+    "top_stats_snapshot": ["12.5 PPG", "4.0 APG", "2.0 SPG"],
+    "strengths_short": ["string", "string"],
+    "development_areas_short": ["string", "string"],
+    "coach_notes_summary": "string",
+    "highlight_summary_placeholder": "string"
+  },
+  "structured_data": {
+    "per_game_summary": [...],
+    "computed_insights": {
+      "games_count": 5,
+      "pts_avg": 12.5,
+      "reb_avg": 4.0,
+      ...
+    }
+  }
+}
 ```
 
-### Role-Based Access Control (RBAC)
+## Development
 
-Team membership roles:
-- **owner**: Full access, can delete team, manage members
-- **coach**: Can create games, generate reports, add stats
-- **member**: Can view team, games, and reports
-
-Access is enforced server-side:
-- User ID is derived from JWT, never from client input
-- Team membership is checked on every team/game/report access
-- Minimum role requirements are enforced per endpoint
-
-### Swapping to Supabase Auth (Future)
-
-To migrate to Supabase Auth:
-
-1. Replace Clerk SDK with `@supabase/auth-helpers-nextjs` in frontend
-2. Update backend JWT validation to use Supabase JWT secret
-3. Update middleware to extract user from Supabase session
-4. See `docs/SUPABASE_AUTH_MIGRATION.md` for detailed steps (TODO)
-
-## Environment Variables
-
-### Backend (`apps/api/.env`)
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `DATABASE_URL` | PostgreSQL connection string | Yes |
-| `OPENAI_API_KEY` | OpenAI API key for report generation | Yes |
-| `CLERK_SECRET_KEY` | Clerk secret key for JWT validation | Yes |
-| `CLERK_PUBLISHABLE_KEY` | Clerk publishable key | Yes |
-| `ENVIRONMENT` | `development` or `production` | No |
-| `LOG_LEVEL` | Logging level (DEBUG, INFO, etc.) | No |
-
-### Frontend (`apps/web/.env.local`)
-
-| Variable | Description | Required |
-|----------|-------------|----------|
-| `NEXT_PUBLIC_API_URL` | Backend API URL | Yes |
-| `NEXT_PUBLIC_CLERK_PUBLISHABLE_KEY` | Clerk publishable key | Yes |
-| `CLERK_SECRET_KEY` | Clerk secret key | Yes |
-
-## Testing
-
+### Backend
 ```bash
-# Backend tests
 cd apps/api
-pytest
+python -m venv venv
+source venv/bin/activate  # Windows: .\venv\Scripts\activate
+pip install -r requirements.txt
+uvicorn src.main:app --reload
+```
 
-# Frontend tests
+### Frontend
+```bash
 cd apps/web
-npm run test
+npm install
+npm run dev
+```
+
+### Database Migrations
+```bash
+# Run migrations
+docker compose exec api alembic upgrade head
+
+# Create new migration
+docker compose exec api alembic revision --autogenerate -m "description"
 ```
 
 ## Linting & Formatting
@@ -275,4 +247,3 @@ npm run format
 ## License
 
 MIT
-
