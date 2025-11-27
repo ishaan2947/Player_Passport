@@ -10,6 +10,14 @@ import type {
   CreateTeamInput,
   CreateGameInput,
   CreateStatsInput,
+  Player,
+  PlayerGame,
+  PlayerReport,
+  PlayerWithGames,
+  CreatePlayerInput,
+  CreatePlayerGameInput,
+  GeneratePlayerReportInput,
+  GeneratePlayerReportResponse,
 } from "@/types/api";
 
 const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:8000";
@@ -205,6 +213,71 @@ export function getReportPdfUrl(reportId: string): string {
 // CSV Template
 export function getCsvTemplateUrl(): string {
   return `${API_URL}/stats/csv-template`;
+}
+
+// ============================================
+// Player Passport API
+// ============================================
+
+// Players
+export async function getPlayers(token?: string | null): Promise<Player[]> {
+  return fetchApi<Player[]>("/players", {}, token);
+}
+
+export async function getPlayer(playerId: string, token?: string | null): Promise<PlayerWithGames> {
+  return fetchApi<PlayerWithGames>(`/players/${playerId}`, {}, token);
+}
+
+export async function createPlayer(input: CreatePlayerInput, token?: string | null): Promise<Player> {
+  return fetchApi<Player>("/players", {
+    method: "POST",
+    body: JSON.stringify(input),
+  }, token);
+}
+
+export async function updatePlayer(playerId: string, input: Partial<CreatePlayerInput>, token?: string | null): Promise<Player> {
+  return fetchApi<Player>(`/players/${playerId}`, {
+    method: "PUT",
+    body: JSON.stringify(input),
+  }, token);
+}
+
+export async function deletePlayer(playerId: string, token?: string | null): Promise<void> {
+  await fetchApi<void>(`/players/${playerId}`, {
+    method: "DELETE",
+  }, token);
+}
+
+// Player Games
+export async function getPlayerGames(playerId: string, token?: string | null): Promise<PlayerGame[]> {
+  return fetchApi<PlayerGame[]>(`/players/${playerId}/games`, {}, token);
+}
+
+export async function addPlayerGame(playerId: string, input: CreatePlayerGameInput, token?: string | null): Promise<PlayerGame> {
+  return fetchApi<PlayerGame>(`/players/${playerId}/games`, {
+    method: "POST",
+    body: JSON.stringify(input),
+  }, token);
+}
+
+// Player Reports
+export async function getPlayerReports(playerId: string, token?: string | null): Promise<PlayerReport[]> {
+  return fetchApi<PlayerReport[]>(`/players/${playerId}/reports`, {}, token);
+}
+
+export async function getPlayerReportByPlayerId(playerId: string, reportId: string, token?: string | null): Promise<PlayerReport> {
+  return fetchApi<PlayerReport>(`/players/${playerId}/reports/${reportId}`, {}, token);
+}
+
+export async function generatePlayerReport(
+  playerId: string,
+  request?: GeneratePlayerReportInput,
+  token?: string | null
+): Promise<GeneratePlayerReportResponse> {
+  return fetchApi<GeneratePlayerReportResponse>(`/players/${playerId}/reports`, {
+    method: "POST",
+    body: JSON.stringify(request || {}),
+  }, token);
 }
 
 export { ApiError };

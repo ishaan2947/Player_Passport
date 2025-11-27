@@ -1,11 +1,12 @@
 import Link from "next/link";
 
-function BasketballIcon({ className }: { className?: string }) {
+function PassportIcon({ className }: { className?: string }) {
   return (
     <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
-      <path d="M2 12h20" />
+      <rect x="4" y="3" width="16" height="18" rx="2" />
+      <circle cx="12" cy="10" r="3" />
+      <path d="M8 17h8" />
+      <path d="M8 14h8" />
     </svg>
   );
 }
@@ -14,11 +15,11 @@ const features = [
   {
     icon: (
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9 12h6m-6 4h6m2 5H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
       </svg>
     ),
-    title: "Structured Reports",
-    description: "Get consistent post-game reports with summary, key insights, action items, and practice focus areas.",
+    title: "Player-Centric Tracking",
+    description: "Track individual player development with detailed game logs, stats trends, and personalized insights.",
   },
   {
     icon: (
@@ -27,17 +28,17 @@ const features = [
         <path strokeLinecap="round" strokeLinejoin="round" d="m19 9-5 5-4-4-3 3" />
       </svg>
     ),
-    title: "Stats-Backed Insights",
-    description: "Every insight is backed by your actual game statistics with evidence lines and confidence levels.",
+    title: "Stats-Backed Development",
+    description: "Every insight is backed by actual game statistics with clear trends and confidence levels.",
   },
   {
     icon: (
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M19.428 15.428a2 2 0 00-1.022-.547l-2.387-.477a6 6 0 00-3.86.517l-.318.158a6 6 0 01-3.86.517L6.05 15.21a2 2 0 00-1.806.547M8 4h8l-1 1v5.172a2 2 0 00.586 1.414l5 5c1.26 1.26.367 3.414-1.415 3.414H4.828c-1.782 0-2.674-2.154-1.414-3.414l5-5A2 2 0 009 10.172V5L8 4z" />
       </svg>
     ),
-    title: "Team Management",
-    description: "Create teams, track multiple seasons, and share reports with coaches, players, and parents.",
+    title: "Custom Drill Plans",
+    description: "Get personalized practice drills based on each player's growth areas and position.",
   },
   {
     icon: (
@@ -46,16 +47,16 @@ const features = [
       </svg>
     ),
     title: "AI-Powered Analysis",
-    description: "Advanced GPT-4 analysis identifies patterns and opportunities that humans might miss.",
+    description: "Advanced GPT-4 analysis identifies patterns and opportunities tailored to each player.",
   },
   {
     icon: (
       <svg className="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={1.5}>
-        <path strokeLinecap="round" strokeLinejoin="round" d="M9.663 17h4.673M12 3v1m6.364 1.636l-.707.707M21 12h-1M4 12H3m3.343-5.657l-.707-.707m2.828 9.9a5 5 0 117.072 0l-.548.547A3.374 3.374 0 0014 18.469V19a2 2 0 11-4 0v-.531c0-.895-.356-1.754-.988-2.386l-.548-.547z" />
+        <path strokeLinecap="round" strokeLinejoin="round" d="M4.26 10.147a60.438 60.438 0 0 0-.491 6.347A48.62 48.62 0 0 1 12 20.904a48.62 48.62 0 0 1 8.232-4.41 60.46 60.46 0 0 0-.491-6.347m-15.482 0a50.636 50.636 0 0 0-2.658-.813A59.906 59.906 0 0 1 12 3.493a59.903 59.903 0 0 1 10.399 5.84c-.896.248-1.783.52-2.658.814m-15.482 0A50.717 50.717 0 0 1 12 13.489a50.702 50.702 0 0 1 7.74-3.342M6.75 15a.75.75 0 1 0 0-1.5.75.75 0 0 0 0 1.5Zm0 0v-3.675A55.378 55.378 0 0 1 12 8.443m-7.007 11.55A5.981 5.981 0 0 0 6.75 15.75v-1.5" />
       </svg>
     ),
-    title: "Practice Recommendations",
-    description: "Get specific, actionable practice drills and focus areas tailored to your team's needs.",
+    title: "College Fit Indicators",
+    description: "Understand where players stand and what they need to develop for the next level.",
   },
   {
     icon: (
@@ -64,14 +65,14 @@ const features = [
       </svg>
     ),
     title: "Shareable Reports",
-    description: "Share reports with a simple link. Perfect for team discussions and parent updates.",
+    description: "Share development reports with coaches, trainers, and family with a simple link.",
   },
 ];
 
 const stats = [
-  { value: "85%", label: "Time saved on post-game analysis" },
-  { value: "3x", label: "More actionable insights per game" },
-  { value: "100%", label: "Stats-backed recommendations" },
+  { value: "3-5", label: "Games for insights" },
+  { value: "AI", label: "Powered analysis" },
+  { value: "100%", label: "Parent-friendly" },
 ];
 
 export default function Home() {
@@ -81,10 +82,10 @@ export default function Home() {
       <header className="sticky top-0 z-50 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <BasketballIcon className="h-5 w-5" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 text-white">
+              <PassportIcon className="h-5 w-5" />
             </div>
-            <span className="text-xl font-bold">Explain My Game</span>
+            <span className="text-xl font-bold">Player Passport</span>
           </Link>
           <nav className="flex items-center gap-2 sm:gap-4">
             <Link
@@ -95,7 +96,7 @@ export default function Home() {
             </Link>
             <Link
               href="/sign-up"
-              className="inline-flex h-9 items-center justify-center rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow transition-colors hover:bg-primary/90"
+              className="inline-flex h-9 items-center justify-center rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 px-4 text-sm font-medium text-white shadow transition-colors hover:opacity-90"
             >
               Get Started
             </Link>
@@ -112,24 +113,24 @@ export default function Home() {
           <div className="container flex flex-col items-center justify-center gap-8 py-20 text-center md:py-32">
             <div className="flex max-w-4xl flex-col items-center gap-6">
               {/* Badge */}
-              <div className="animate-fade-in rounded-full border border-primary/30 bg-primary/10 px-4 py-1.5 text-sm font-medium text-primary">
+              <div className="animate-fade-in rounded-full border border-orange-500/30 bg-orange-500/10 px-4 py-1.5 text-sm font-medium text-orange-500">
                 <span className="mr-2">🏀</span>
-                AI-Powered Coaching Insights
+                AI-Powered Player Development
               </div>
               
               {/* Headline */}
               <h1 className="animate-fade-in text-4xl font-bold tracking-tight sm:text-5xl md:text-6xl lg:text-7xl">
-                Turn Game Stats Into{" "}
-                <span className="bg-gradient-to-r from-primary to-orange-400 bg-clip-text text-transparent">
-                  Winning Strategies
+                Your Player&apos;s{" "}
+                <span className="bg-gradient-to-r from-orange-500 to-amber-400 bg-clip-text text-transparent">
+                  Development Journey
                 </span>
+                {" "}Starts Here
               </h1>
               
               {/* Subheadline */}
               <p className="max-w-2xl animate-fade-in text-lg leading-relaxed text-muted-foreground sm:text-xl">
-                Enter your basketball game stats and notes, and let AI generate a 
-                comprehensive post-game report with key insights, action items, 
-                and practice focus areas in seconds.
+                Track game stats, get AI-powered development reports, and watch your 
+                youth basketball player grow with personalized coaching insights and drill plans.
               </p>
             </div>
 
@@ -137,7 +138,7 @@ export default function Home() {
             <div className="flex animate-fade-in flex-col gap-4 sm:flex-row">
               <Link
                 href="/sign-up"
-                className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-8 text-base font-medium text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30"
+                className="inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 px-8 text-base font-medium text-white shadow-lg shadow-orange-500/20 transition-all hover:shadow-xl hover:shadow-orange-500/30"
               >
                 Start Free
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -156,7 +157,7 @@ export default function Home() {
             <div className="mt-8 grid w-full max-w-2xl animate-fade-in grid-cols-3 gap-4 rounded-xl border border-border bg-card/50 p-6 backdrop-blur">
               {stats.map((stat, i) => (
                 <div key={i} className="text-center">
-                  <p className="text-2xl font-bold text-primary sm:text-3xl">{stat.value}</p>
+                  <p className="text-2xl font-bold text-orange-500 sm:text-3xl">{stat.value}</p>
                   <p className="text-xs text-muted-foreground sm:text-sm">{stat.label}</p>
                 </div>
               ))}
@@ -168,12 +169,12 @@ export default function Home() {
         <section id="features" className="border-t border-border bg-muted/30 py-20 md:py-28">
           <div className="container">
             <div className="mx-auto mb-16 max-w-2xl text-center">
-              <p className="mb-4 text-sm font-medium text-primary">Features</p>
+              <p className="mb-4 text-sm font-medium text-orange-500">Features</p>
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Everything You Need for Post-Game Analysis
+                Everything for Player Development
               </h2>
               <p className="mt-4 text-lg text-muted-foreground">
-                Get consistent, stats-backed coaching insights after every game.
+                Track progress, identify growth areas, and get actionable coaching insights.
               </p>
             </div>
 
@@ -181,9 +182,9 @@ export default function Home() {
               {features.map((feature, i) => (
                 <div
                   key={i}
-                  className="group rounded-xl border border-border bg-card p-6 transition-all hover:border-primary/50 hover:shadow-lg hover:shadow-primary/5"
+                  className="group rounded-xl border border-border bg-card p-6 transition-all hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/5"
                 >
-                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
+                  <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-orange-500/10 text-orange-500 transition-colors group-hover:bg-orange-500/20">
                     {feature.icon}
                   </div>
                   <h3 className="mb-2 text-lg font-semibold">{feature.title}</h3>
@@ -200,7 +201,7 @@ export default function Home() {
         <section className="py-20 md:py-28">
           <div className="container">
             <div className="mx-auto mb-16 max-w-2xl text-center">
-              <p className="mb-4 text-sm font-medium text-primary">How It Works</p>
+              <p className="mb-4 text-sm font-medium text-orange-500">How It Works</p>
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
                 From Stats to Strategy in 3 Steps
               </h2>
@@ -210,28 +211,28 @@ export default function Home() {
               {[
                 {
                   step: "1",
-                  title: "Enter Stats",
-                  description: "Input your game stats using our quick entry form. Score, shooting, rebounds, assists - all the basics.",
+                  title: "Add Player",
+                  description: "Create a player profile with basic info like grade, position, and goals.",
                 },
                 {
                   step: "2",
-                  title: "Generate Report",
-                  description: "Click generate and let AI analyze your stats. Takes just a few seconds.",
+                  title: "Log Games",
+                  description: "Enter game stats after each game. Points, rebounds, assists - all the basics.",
                 },
                 {
                   step: "3",
-                  title: "Get Insights",
-                  description: "Review key insights, action items, and practice recommendations tailored to your game.",
+                  title: "Get Report",
+                  description: "Generate an AI development report with insights, drills, and growth areas.",
                 },
               ].map((item, i) => (
                 <div key={i} className="relative text-center">
-                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-primary text-2xl font-bold text-primary-foreground">
+                  <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-amber-500 text-2xl font-bold text-white">
                     {item.step}
                   </div>
                   <h3 className="mb-2 text-xl font-semibold">{item.title}</h3>
                   <p className="text-sm text-muted-foreground">{item.description}</p>
                   {i < 2 && (
-                    <div className="absolute left-[calc(50%+2rem)] top-7 hidden h-0.5 w-[calc(100%-4rem)] bg-gradient-to-r from-primary/50 to-transparent md:block" />
+                    <div className="absolute left-[calc(50%+2rem)] top-7 hidden h-0.5 w-[calc(100%-4rem)] bg-gradient-to-r from-orange-500/50 to-transparent md:block" />
                   )}
                 </div>
               ))}
@@ -243,15 +244,15 @@ export default function Home() {
         <section className="border-y border-border bg-muted/30 py-20 md:py-28">
           <div className="container">
             <div className="mx-auto max-w-3xl text-center">
-              <svg className="mx-auto mb-6 h-12 w-12 text-primary/30" fill="currentColor" viewBox="0 0 24 24">
+              <svg className="mx-auto mb-6 h-12 w-12 text-orange-500/30" fill="currentColor" viewBox="0 0 24 24">
                 <path d="M14.017 21v-7.391c0-5.704 3.731-9.57 8.983-10.609l.995 2.151c-2.432.917-3.995 3.638-3.995 5.849h4v10h-9.983zm-14.017 0v-7.391c0-5.704 3.748-9.57 9-10.609l.996 2.151c-2.433.917-3.996 3.638-3.996 5.849h3.983v10h-9.983z" />
               </svg>
               <blockquote className="text-2xl font-medium leading-relaxed sm:text-3xl">
-                &ldquo;Finally, a tool that gives me consistent, actionable insights after every game. 
-                It&apos;s like having an analytics assistant at your fingertips.&rdquo;
+                &ldquo;As a parent, I finally have a clear picture of my son&apos;s development. 
+                The reports are honest, helpful, and give us real things to work on together.&rdquo;
               </blockquote>
               <p className="mt-6 text-muted-foreground">
-                — Youth Basketball Coach
+                — Youth Basketball Parent
               </p>
             </div>
           </div>
@@ -260,17 +261,17 @@ export default function Home() {
         {/* CTA Section */}
         <section className="py-20 md:py-28">
           <div className="container">
-            <div className="mx-auto flex max-w-3xl flex-col items-center rounded-2xl border border-border bg-gradient-to-br from-primary/10 via-background to-orange-500/10 p-8 text-center md:p-12">
+            <div className="mx-auto flex max-w-3xl flex-col items-center rounded-2xl border border-border bg-gradient-to-br from-orange-500/10 via-background to-amber-500/10 p-8 text-center md:p-12">
               <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-                Ready to Improve Your Game?
+                Ready to Track Your Player&apos;s Growth?
               </h2>
               <p className="mt-4 max-w-xl text-muted-foreground">
-                Join coaches and teams who are using AI to get better insights after every game. 
+                Join parents and coaches who are using AI to develop young basketball talent. 
                 Start for free, no credit card required.
               </p>
               <Link
                 href="/sign-up"
-                className="mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-primary px-8 text-base font-medium text-primary-foreground shadow-lg shadow-primary/20 transition-all hover:bg-primary/90 hover:shadow-xl hover:shadow-primary/30"
+                className="mt-8 inline-flex h-12 items-center justify-center gap-2 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 px-8 text-base font-medium text-white shadow-lg shadow-orange-500/20 transition-all hover:shadow-xl hover:shadow-orange-500/30"
               >
                 Get Started Free
                 <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -290,18 +291,18 @@ export default function Home() {
         <div className="container">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-                <BasketballIcon className="h-5 w-5" />
+              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 text-white">
+                <PassportIcon className="h-5 w-5" />
               </div>
-              <span className="font-bold">Explain My Game</span>
+              <span className="font-bold">Player Passport</span>
             </div>
             <nav className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
               <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
               <Link href="/terms" className="hover:text-foreground">Terms</Link>
-              <Link href="mailto:hello@explainmygame.com" className="hover:text-foreground">Contact</Link>
+              <Link href="mailto:hello@playerpassport.io" className="hover:text-foreground">Contact</Link>
             </nav>
             <p className="text-sm text-muted-foreground">
-              © 2024 Explain My Game
+              © 2024 Player Passport
             </p>
           </div>
         </div>
