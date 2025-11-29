@@ -170,15 +170,35 @@ async def rate_limit_middleware(request: Request, call_next) -> Response:
 
 @app.middleware("http")
 async def logging_middleware(request: Request, call_next) -> Response:
-    """Request/response logging middleware."""
+    """Request/response logging middleware with correlation ID support."""
+    import uuid
+
     start_time = time.time()
+
+    # Generate or use existing correlation ID
+    correlation_id = request.headers.get("X-Correlation-ID") or str(uuid.uuid4())
+    
+    # Add correlation ID to request state for use in handlers
+    request.state.correlation_id = correlation_id
+
+    # Log request with correlation ID
+    log = logger.bind(correlation_id=correlation_id)
+    log.info(
+        "Request started",
+        method=request.method,
+        path=request.url.path,
+        client_ip=request.client.host if request.client else None,
+    )
 
     response = await call_next(request)
 
     duration_ms = (time.time() - start_time) * 1000
 
-    logger.info(
-        "Request processed",
+    # Add correlation ID to response headers
+    response.headers["X-Correlation-ID"] = correlation_id
+
+    log.info(
+        "Request completed",
         method=request.method,
         path=request.url.path,
         status_code=response.status_code,

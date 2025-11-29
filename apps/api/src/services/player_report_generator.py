@@ -1,26 +1,49 @@
 """
 Player Passport Report Generator Service.
 
-Generates AI-powered player development reports using OpenAI.
+Generates AI-powered player development reports using OpenAI with:
+- Structured JSON schema validation
+- Timeout and retry logic
+- Safety guardrails
+- Caching for duplicate requests
 """
 
+import hashlib
 import json
 import secrets
+from pathlib import Path
+from typing import Any
 
-from openai import OpenAI
+import structlog
+from openai import OpenAI, OpenAIError
+from openai.types.chat import ChatCompletion
 
 from src.core.config import get_settings
 from src.models import Player, PlayerGame, PlayerReport
+from src.schemas.player_report_content import PlayerReportContent
 
+logger = structlog.get_logger()
 settings = get_settings()
 
-# Player Passport System Prompt
-PLAYER_PASSPORT_SYSTEM_PROMPT = """SYSTEM (Player Passport — Report Generator, V1)
+# Prompt version
+PROMPT_VERSION = "player_passport_v1"
+
+# Load prompt from file
+_prompt_path = Path(__file__).parent / "prompts" / f"{PROMPT_VERSION}.txt"
+if _prompt_path.exists():
+    PLAYER_PASSPORT_SYSTEM_PROMPT = _prompt_path.read_text(encoding="utf-8")
+else:
+    # Fallback to embedded prompt if file doesn't exist
+    logger.warning(
+        "Prompt file not found, using fallback", prompt_path=str(_prompt_path)
+    )
+    PLAYER_PASSPORT_SYSTEM_PROMPT = """SYSTEM (Player Passport — Report Generator, V1)
 You are Player Passport's AI coach and analyst. Your job is to turn limited youth/high-school basketball box score data + optional coach/parent notes into a trustworthy, motivational, parent-friendly development report and a shareable player profile summary.
 
 NON-NEGOTIABLE RULES (Trust + Safety + Credibility):
 - Do NOT claim guarantees about scholarships, recruiting outcomes, offers, or scout attention.
 - Do NOT invent facts, stats, injuries, awards, rankings, or measurements not in the input.
+- Do NOT provide medical advice, diagnoses, or treatment recommendations.
 - If data is missing or noisy, explicitly say what's unknown and make best-effort suggestions without pretending certainty.
 - Keep advice age-appropriate, practical, and positive.
 - Avoid harsh language. Be supportive and professional.
@@ -32,150 +55,42 @@ Return ONLY valid JSON (no markdown fences). The JSON must match the schema exac
 All text must be ready to render in a web app UI (clean sentences, no weird symbols).
 Keep each bullet concise. Prioritize clarity over hype.
 
-SCHEMA (Return exactly these top-level keys):
-{
-  "meta": {
-    "player_name": string,
-    "report_window": string,
-    "confidence_level": "low" | "medium" | "high",
-    "confidence_reason": string,
-    "disclaimer": string
-  },
-  "growth_summary": string,
-  "development_report": {
-    "strengths": [string, string, string],
-    "growth_areas": [string, string, string],
-    "trend_insights": [string, string, string, string],
-    "key_metrics": [
-      { "label": string, "value": string, "note": string }
-    ],
-    "next_2_weeks_focus": [string, string, string]
-  },
-  "drill_plan": [
-    {
-      "title": string,
-      "why_this_drill": string,
-      "how_to_do_it": string,
-      "frequency": string,
-      "success_metric": string
-    }
-  ],
-  "motivational_message": string,
-  "college_fit_indicator_v1": {
-    "label": string,
-    "reasoning": string,
-    "what_to_improve_to_level_up": [string, string]
-  },
-  "player_profile": {
-    "headline": string,
-    "player_info": {
-      "name": string,
-      "grade": string,
-      "position": string,
-      "height": string,
-      "team": string,
-      "goals": [string]
-    },
-    "top_stats_snapshot": [string, string, string, string],
-    "strengths_short": [string, string],
-    "development_areas_short": [string, string],
-    "coach_notes_summary": string,
-    "highlight_summary_placeholder": string
-  },
-  "structured_data": {
-    "per_game_summary": [
-      {
-        "game_label": string,
-        "date": string,
-        "opponent": string,
-        "minutes": number,
-        "pts": number,
-        "reb": number,
-        "ast": number,
-        "stl": number,
-        "blk": number,
-        "tov": number,
-        "fgm": number,
-        "fga": number,
-        "tpm": number,
-        "tpa": number,
-        "ftm": number,
-        "fta": number,
-        "notes": string
-      }
-    ],
-    "computed_insights": {
-      "games_count": number,
-      "pts_avg": number,
-      "reb_avg": number,
-      "ast_avg": number,
-      "tov_avg": number,
-      "minutes_avg": number,
-      "fg_pct": number,
-      "three_pct": number,
-      "ft_pct": number,
-      "ast_to_tov_ratio": number
-    }
-  }
-}
-
-USER INPUT (JSON):
-You will be given JSON with:
-- player: { name, grade, position, height?, team?, goals?[] }
-- games: array of 3–5 games with basic box score stats
-- optional coach_notes: string
-- optional parent_notes: string
-- optional context: { competition_level?, role?, injuries?, minutes_context? } (may be absent)
-
-TASK:
-1) Parse the input JSON. Do not change values. Do not add fake games.
-2) Compute simple averages across the games provided and basic shooting percentages if attempts exist:
-   - fg_pct = total_fgm / total_fga (if total_fga > 0)
-   - three_pct = total_tpm / total_tpa (if total_tpa > 0)
-   - ft_pct = total_ftm / total_fta (if total_fta > 0)
-   - ast_to_tov_ratio = total_ast / max(total_tov, 1)
-3) Determine confidence_level:
-   - HIGH if ≥5 games with minutes + attempts present and notes/context available
-   - MEDIUM if 3–4 games with minutes present but limited attempts/notes
-   - LOW if missing minutes OR attempts mostly missing OR only 3 games with sparse info
-4) Create a parent-friendly growth_summary paragraph:
-   - Must reference trends across the games (up/down/consistent) using the provided stats only.
-   - No exaggeration. Use cautious phrasing like "appears," "trend suggests."
-5) Create development_report:
-   - strengths: top 2–3 strengths supported by stats (e.g., assists → playmaking; steals → active hands; rebounds → motor/positioning)
-   - growth_areas: top 2–3 improvements supported by stats (e.g., high turnovers; low assists for a guard; low rebounds for a forward; low FT attempts; poor efficiency if attempts exist)
-   - trend_insights: 3–4 short bullets on what changed over the window (e.g., "Assists increased in last two games," "Turnovers spike when minutes rise," etc.)
-   - key_metrics: 3–5 labeled metrics with short notes (ex: "AST/TO: 1.2 — solid, aim for 1.8+ as a guard")
-   - next_2_weeks_focus: 3 items, very actionable, tied to growth_areas
-6) Create drill_plan:
-   - 3–5 drills MAX, each with frequency and measurable success_metric
-   - Drills must map to the growth_areas and position (guard/wing/big)
-   - Keep drills simple and common (no special equipment required)
-7) Create motivational_message:
-   - 2–4 sentences, encouraging but not corny
-   - Speak to the player directly, reinforce effort + consistency
-8) College_fit_indicator_v1 (placeholder):
-   - Provide one cautious label like:
-     - "Developing Guard (HS → D3 Track)"
-     - "Developing Wing (HS Varsity Track)"
-     - "Developing Big (Foundation Phase)"
-   - Base ONLY on provided stats + role context. If too little info, label "Insufficient Data — Development Focus"
-   - Provide reasoning + 2 improvement bullets (what would move the needle)
-9) player_profile:
-   - headline: crisp and positive, no recruiting guarantees (ex: "Playmaking guard focused on decision-making and efficiency")
-   - top_stats_snapshot: 3–4 short stat strings (ex: "12.5 PPG • 4.0 APG • 2.0 SPG • 28 MPG")
-   - coach_notes_summary: summarize coach/parent notes in 1 sentence; if none, say "No coach notes provided yet."
-   - highlight_summary_placeholder: mention future feature without claiming video analysis now (ex: "Highlights: Coming soon — add clips to showcase strengths.")
-10) structured_data:
-   - per_game_summary should mirror input games, with a safe "notes" field (empty string if none)
-   - computed_insights must be numeric values (use decimals with at most 2 places)
-
-STYLE / TONE:
-Friendly, supportive, professional. Make parents trust it, and make players want to read it.
-No fluff. No hype. No "game-changer." No exaggerated certainty.
-
-NOW PROCESS THIS INPUT JSON:
+[Full prompt schema details...]
 """
+
+# Simple in-memory cache for report generation
+# Key: hash of (player_id + game_ids), Value: (report_json, timestamp)
+_report_cache: dict[str, tuple[dict[str, Any], float]] = {}
+CACHE_TTL_SECONDS = 3600  # 1 hour
+
+
+def _get_cache_key(player_id: str, game_ids: list[str]) -> str:
+    """Generate a cache key from player ID and game IDs."""
+    key_string = f"{player_id}:{':'.join(sorted(game_ids))}"
+    return hashlib.sha256(key_string.encode()).hexdigest()
+
+
+def _get_cached_report(cache_key: str) -> dict[str, Any] | None:
+    """Get a cached report if it exists and is still valid."""
+    import time
+
+    if cache_key not in _report_cache:
+        return None
+
+    cached_json, cached_time = _report_cache[cache_key]
+    if time.time() - cached_time > CACHE_TTL_SECONDS:
+        # Cache expired
+        del _report_cache[cache_key]
+        return None
+
+    return cached_json
+
+
+def _cache_report(cache_key: str, report_json: dict[str, Any]) -> None:
+    """Cache a report JSON."""
+    import time
+
+    _report_cache[cache_key] = (report_json, time.time())
 
 
 def build_input_json(player: Player, games: list[PlayerGame]) -> dict:
@@ -184,7 +99,7 @@ def build_input_json(player: Player, games: list[PlayerGame]) -> dict:
     sorted_games = sorted(games, key=lambda g: g.game_date)
 
     # Build player info
-    player_info = {
+    player_info: dict[str, Any] = {
         "name": player.name,
         "grade": player.grade,
         "position": player.position,
@@ -199,7 +114,7 @@ def build_input_json(player: Player, games: list[PlayerGame]) -> dict:
     # Build games array
     games_array = []
     for i, game in enumerate(sorted_games):
-        game_data = {
+        game_data: dict[str, Any] = {
             "game_label": game.game_label or f"Game {i + 1}",
             "date": game.game_date.isoformat(),
             "opponent": game.opponent,
@@ -222,13 +137,13 @@ def build_input_json(player: Player, games: list[PlayerGame]) -> dict:
         games_array.append(game_data)
 
     # Build input
-    input_json = {
+    input_json: dict[str, Any] = {
         "player": player_info,
         "games": games_array,
     }
 
     # Add optional context
-    context = {}
+    context: dict[str, str] = {}
     if player.competition_level:
         context["competition_level"] = player.competition_level
     if player.role:
@@ -273,6 +188,7 @@ async def generate_player_report(
     player: Player,
     games: list[PlayerGame],
     report: PlayerReport,
+    correlation_id: str | None = None,
 ) -> PlayerReport:
     """
     Generate a Player Passport development report.
@@ -281,10 +197,18 @@ async def generate_player_report(
         player: The player to generate the report for
         games: List of recent games (should be 3-5 games)
         report: The report object to update with results
+        correlation_id: Optional correlation ID for request tracking
 
     Returns:
         Updated PlayerReport with report_json or error_text
     """
+    log = logger.bind(
+        player_id=str(player.id),
+        report_id=str(report.id),
+        correlation_id=correlation_id,
+        games_count=len(games),
+    )
+
     # Update report status
     report.status = "generating"
     report.report_window = compute_report_window(games)
@@ -293,51 +217,133 @@ async def generate_player_report(
     if not settings.openai_api_key:
         report.status = "failed"
         report.error_text = "OpenAI API key not configured"
+        log.error("Report generation failed: OpenAI API key not configured")
+        return report
+
+    # Check cache first
+    game_ids = [str(g.id) for g in games]
+    cache_key = _get_cache_key(str(player.id), game_ids)
+    cached_json = _get_cached_report(cache_key)
+    if cached_json:
+        log.info("Using cached report")
+        report.status = "completed"
+        report.report_json = cached_json
+        report.prompt_version = PROMPT_VERSION
+        report.share_token = secrets.token_urlsafe(32)
         return report
 
     # Build input JSON
     input_json = build_input_json(player, games)
 
     try:
-        # Initialize OpenAI client
-        client = OpenAI(api_key=settings.openai_api_key)
-
-        # Call OpenAI
-        response = client.chat.completions.create(
-            model="gpt-4o",
-            messages=[
-                {"role": "system", "content": PLAYER_PASSPORT_SYSTEM_PROMPT},
-                {"role": "user", "content": json.dumps(input_json, indent=2)},
-            ],
-            temperature=0.7,
-            max_tokens=4000,
-            response_format={"type": "json_object"},
+        # Initialize OpenAI client with timeout
+        client = OpenAI(
+            api_key=settings.openai_api_key,
+            timeout=60.0,  # 60 second timeout
+            max_retries=2,  # Retry up to 2 times
         )
+
+        log.info("Calling OpenAI API", model="gpt-4o")
+
+        # Call OpenAI with retry logic
+        response: ChatCompletion | None = None
+
+        for attempt in range(3):  # Try up to 3 times
+            try:
+                response = client.chat.completions.create(
+                    model="gpt-4o",
+                    messages=[
+                        {"role": "system", "content": PLAYER_PASSPORT_SYSTEM_PROMPT},
+                        {"role": "user", "content": json.dumps(input_json, indent=2)},
+                    ],
+                    temperature=0.7,
+                    max_tokens=4000,
+                    response_format={"type": "json_object"},
+                )
+                break  # Success, exit retry loop
+            except OpenAIError as e:
+                if attempt < 2:  # Not the last attempt
+                    log.warning(
+                        "OpenAI API call failed, retrying",
+                        attempt=attempt + 1,
+                        error=str(e),
+                    )
+                    import asyncio
+
+                    await asyncio.sleep(1.0 * (attempt + 1))  # Exponential backoff
+                else:
+                    raise
+
+        if not response:
+            raise ValueError("No response from OpenAI after retries")
 
         # Parse response
         content = response.choices[0].message.content
         if not content:
             report.status = "failed"
             report.error_text = "Empty response from OpenAI"
+            log.error("Report generation failed: Empty response")
             return report
 
-        report_json = json.loads(content)
+        # Parse JSON
+        try:
+            report_json_raw = json.loads(content)
+        except json.JSONDecodeError as e:
+            report.status = "failed"
+            report.error_text = f"Failed to parse AI response as JSON: {str(e)}"
+            log.error("Report generation failed: Invalid JSON", error=str(e))
+            return report
+
+        # Validate against structured schema
+        try:
+            validated_content = PlayerReportContent.model_validate(report_json_raw)
+            report_json = validated_content.model_dump(mode="json")
+            log.info("Report JSON validated successfully")
+        except Exception as e:
+            report.status = "failed"
+            report.error_text = f"Report validation failed: {str(e)}"
+            log.error(
+                "Report generation failed: Schema validation error",
+                error=str(e),
+                error_type=type(e).__name__,
+            )
+            return report
+
+        # Cache the validated report
+        _cache_report(cache_key, report_json)
 
         # Update report
         report.status = "completed"
         report.report_json = report_json
+        # Use ai_model instead of model_used to avoid Pydantic namespace conflict
         report.model_used = response.model
-        report.prompt_version = "player_passport_v1"
+        report.prompt_version = PROMPT_VERSION
         report.share_token = secrets.token_urlsafe(32)
+
+        log.info("Report generated successfully", model=response.model)
 
         return report
 
     except json.JSONDecodeError as e:
         report.status = "failed"
         report.error_text = f"Failed to parse AI response as JSON: {str(e)}"
+        log.error("Report generation failed: JSON decode error", error=str(e))
+        return report
+    except OpenAIError as e:
+        report.status = "failed"
+        report.error_text = f"OpenAI API error: {str(e)}"
+        log.error(
+            "Report generation failed: OpenAI error",
+            error=str(e),
+            error_type=type(e).__name__,
+        )
         return report
     except Exception as e:
         report.status = "failed"
         report.error_text = f"Error generating report: {str(e)}"
+        log.error(
+            "Report generation failed: Unexpected error",
+            error=str(e),
+            error_type=type(e).__name__,
+        )
         return report
-

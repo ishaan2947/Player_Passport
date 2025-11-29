@@ -4,12 +4,13 @@ Player Passport API endpoints.
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
 from src.core.auth import get_current_user
 from src.core.database import get_db
+from src.core.rate_limit import check_report_generation_rate_limit
 from src.models import Player, PlayerGame, PlayerReport, User
 from src.schemas.player import (
     PlayerCreate,
@@ -293,6 +294,7 @@ async def delete_player_game(
 async def create_player_report(
     player_id: UUID,
     report_data: PlayerReportCreate,
+    request: Request,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> PlayerReport:
@@ -333,6 +335,13 @@ async def create_player_report(
             detail="At least 3 games are required to generate a report",
         )
 
+    # Check rate limit for report generation (stricter than general rate limit)
+    is_allowed, error_message = check_report_generation_rate_limit(
+        str(current_user.id), requests_per_hour=10
+    )
+    if not is_allowed:
+        raise HTTPException(status_code=429, detail=error_message)
+
     # Create report
     report = PlayerReport(
         player_id=player_id,
@@ -342,8 +351,9 @@ async def create_player_report(
     db.commit()
     db.refresh(report)
 
-    # Generate report
-    report = await generate_player_report(player, games, report)
+    # Generate report with correlation ID
+    correlation_id = getattr(request.state, "correlation_id", None)
+    report = await generate_player_report(player, games, report, correlation_id=correlation_id)
     db.commit()
     db.refresh(report)
 

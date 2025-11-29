@@ -51,6 +51,8 @@ class PlayerReport(Base):
     )
 
     # AI metadata
+    # Note: Using model_used (not ai_model) to match database schema
+    # Pydantic warning is suppressed via model_config in schemas
     model_used: Mapped[str | None] = mapped_column(
         String(100),
         nullable=True,

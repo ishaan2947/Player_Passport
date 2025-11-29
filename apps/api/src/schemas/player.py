@@ -178,14 +178,17 @@ class PlayerReportResponse(BaseModel):
     status: ReportStatus
     report_window: str | None
     report_json: dict | None
-    model_used: str | None
+    model_used: str | None  # Note: This conflicts with Pydantic's protected namespace but matches DB schema
     prompt_version: str | None
     error_text: str | None
     share_token: str | None
     is_public: bool
     created_at: datetime
 
-    model_config = {"from_attributes": True}
+    model_config = {
+        "from_attributes": True,
+        "protected_namespaces": (),  # Allow model_used field
+    }
 
 
 class PlayerReportWithPlayerResponse(PlayerReportResponse):

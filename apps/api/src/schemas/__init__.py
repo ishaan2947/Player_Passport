@@ -49,6 +49,7 @@ from src.schemas.player import (
     PlayerReportWithPlayerResponse,
     FullPlayerReport,
 )
+from src.schemas.player_report_content import PlayerReportContent
 
 __all__ = [
     # Team
@@ -92,4 +93,5 @@ __all__ = [
     "PlayerReportResponse",
     "PlayerReportWithPlayerResponse",
     "FullPlayerReport",
+    "PlayerReportContent",
 ]
