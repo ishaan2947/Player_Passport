@@ -292,6 +292,7 @@ export interface PlayerReport {
   model_used?: string;
   prompt_version?: string;
   error_text?: string;
+  share_token?: string;
   created_at: string;
 }
 

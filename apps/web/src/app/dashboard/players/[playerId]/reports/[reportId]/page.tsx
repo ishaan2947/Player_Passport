@@ -6,7 +6,7 @@ import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import { getPlayerReportByPlayerId, getPlayer } from "@/lib/api";
 import type { PlayerReport, PlayerWithGames } from "@/types/api";
-import { DashboardSkeleton } from "@/components/ui/skeleton";
+import { DashboardSkeleton, PlayerReportSkeleton } from "@/components/ui/skeleton";
 
 function ConfidenceBadge({ level }: { level: "low" | "medium" | "high" }) {
   const colors = {
@@ -56,6 +56,15 @@ export default function PlayerReportPage() {
   const [report, setReport] = useState<PlayerReport | null>(null);
   const [player, setPlayer] = useState<PlayerWithGames | null>(null);
   const [loading, setLoading] = useState(true);
+  const [shareUrl, setShareUrl] = useState<string>("");
+
+  // Generate share URL when report is loaded
+  useEffect(() => {
+    if (report?.share_token) {
+      const baseUrl = typeof window !== "undefined" ? window.location.origin : "";
+      setShareUrl(`${baseUrl}/share/report/${report.share_token}`);
+    }
+  }, [report]);
 
   const loadData = useCallback(async () => {
     try {
@@ -78,31 +87,47 @@ export default function PlayerReportPage() {
     loadData();
   }, [loadData]);
 
+  // Poll for report completion if status is generating or pending
+  useEffect(() => {
+    if (!report) return;
+    
+    if (report.status === "generating" || report.status === "pending") {
+      const interval = setInterval(() => {
+        loadData();
+      }, 3000); // Poll every 3 seconds
+
+      return () => clearInterval(interval);
+    }
+    return undefined;
+  }, [report, loadData]);
+
   if (loading) return <DashboardSkeleton />;
   if (!report || !player) return null;
 
   const content = report.report_json;
 
-  if (report.status !== "completed" || !content) {
+  // Show skeleton while generating
+  if (report.status === "generating" || report.status === "pending") {
+    return <PlayerReportSkeleton />;
+  }
+
+  // Show error state if failed
+  if (report.status === "failed" || !content) {
     return (
       <div className="flex min-h-screen items-center justify-center p-4">
-        <div className="text-center">
-          <div className="mb-4 flex h-16 w-16 mx-auto items-center justify-center rounded-full bg-yellow-500/20">
-            <svg className="h-8 w-8 text-yellow-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z" />
+        <div className="max-w-md text-center">
+          <div className="mb-4 flex h-16 w-16 mx-auto items-center justify-center rounded-full bg-red-500/20">
+            <svg className="h-8 w-8 text-red-500" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
             </svg>
           </div>
-          <h2 className="text-xl font-bold">Report {report.status === "generating" ? "Generating..." : "Not Ready"}</h2>
+          <h2 className="text-xl font-bold">Report Generation Failed</h2>
           <p className="mt-2 text-muted-foreground">
-            {report.status === "generating"
-              ? "Please wait while we analyze the game data..."
-              : report.status === "failed"
-              ? report.error_text || "An error occurred"
-              : "This report is still being processed."}
+            {report.error_text || "An error occurred while generating the report. Please try again."}
           </p>
           <Link
             href={`/dashboard/players/${playerId}`}
-            className="mt-4 inline-block text-sm text-primary hover:underline"
+            className="mt-6 inline-block rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
           >
             ← Back to Player
           </Link>
@@ -147,6 +172,25 @@ export default function PlayerReportPage() {
             <span className="rounded-full bg-secondary px-3 py-1 text-xs font-medium">
               {meta.report_window}
             </span>
+            {shareUrl && (
+              <button
+                onClick={async () => {
+                  try {
+                    await navigator.clipboard.writeText(shareUrl);
+                    toast.success("Share link copied to clipboard!");
+                  } catch {
+                    toast.error("Failed to copy link");
+                  }
+                }}
+                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-1.5 text-xs font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:shadow-orange-500/25"
+                title="Copy share link"
+              >
+                <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8.684 13.342C8.886 12.938 9 12.482 9 12c0-.482-.114-.938-.316-1.342m0 2.684a3 3 0 110-2.684m0 2.684l6.632 3.316m-6.632-6l6.632-3.316m0 0a3 3 0 105.367-2.684 3 3 0 00-5.367 2.684zm0 9.316a3 3 0 105.368 2.684 3 3 0 00-5.368-2.684z" />
+                </svg>
+                Share Report
+              </button>
+            )}
           </div>
         </div>
 

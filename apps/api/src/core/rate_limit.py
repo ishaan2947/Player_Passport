@@ -3,7 +3,6 @@ Rate limiting utilities for API endpoints.
 """
 
 import time
-from typing import Any
 
 import structlog
 
