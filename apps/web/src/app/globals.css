@@ -153,3 +153,44 @@
 .animate-float {
   animation: float 3s ease-in-out infinite;
 }
+
+/* Print styles for reports */
+@media print {
+  /* Hide navigation and non-essential elements */
+  nav,
+  header,
+  button:not(.print-visible),
+  .no-print {
+    display: none !important;
+  }
+
+  /* Ensure content prints on white background */
+  body {
+    background: white !important;
+    color: black !important;
+  }
+
+  /* Optimize page breaks */
+  .print-break-before {
+    page-break-before: always;
+  }
+
+  .print-break-after {
+    page-break-after: always;
+  }
+
+  .print-break-inside-avoid {
+    page-break-inside: avoid;
+  }
+
+  /* Remove shadows and borders for cleaner print */
+  .print\:shadow-none {
+    box-shadow: none !important;
+  }
+
+  /* Ensure text is readable */
+  * {
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+}

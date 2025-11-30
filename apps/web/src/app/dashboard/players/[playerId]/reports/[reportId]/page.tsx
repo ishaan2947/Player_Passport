@@ -139,9 +139,9 @@ export default function PlayerReportPage() {
   const { meta, growth_summary, development_report, drill_plan, motivational_message, college_fit_indicator_v1, player_profile, structured_data } = content;
 
   return (
-    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 p-4 md:p-8">
+    <div className="min-h-screen bg-gradient-to-b from-background to-secondary/20 p-4 md:p-8 print:p-0 print:bg-white">
       {/* Breadcrumb */}
-      <div className="mb-6">
+      <div className="mb-6 no-print">
         <Link
           href={`/dashboard/players/${playerId}`}
           className="inline-flex items-center gap-1 text-sm text-muted-foreground hover:text-foreground"
@@ -154,7 +154,7 @@ export default function PlayerReportPage() {
       </div>
 
       {/* Header */}
-      <div className="mb-8 rounded-2xl border border-orange-500/20 bg-gradient-to-br from-orange-500/10 via-card to-amber-500/10 p-6 md:p-8">
+      <div className="mb-8 rounded-2xl border border-orange-500/20 bg-gradient-to-br from-orange-500/10 via-card to-amber-500/10 p-6 md:p-8 print:border print:bg-white print:rounded-lg print-break-inside-avoid">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <div>
             <div className="flex items-center gap-3">
