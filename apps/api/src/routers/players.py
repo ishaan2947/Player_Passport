@@ -249,9 +249,7 @@ async def update_player_game(
     return game
 
 
-@router.delete(
-    "/{player_id}/games/{game_id}", status_code=status.HTTP_204_NO_CONTENT
-)
+@router.delete("/{player_id}/games/{game_id}", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_player_game(
     player_id: UUID,
     game_id: UUID,
@@ -353,7 +351,9 @@ async def create_player_report(
 
     # Generate report with correlation ID
     correlation_id = getattr(request.state, "correlation_id", None)
-    report = await generate_player_report(player, games, report, correlation_id=correlation_id)
+    report = await generate_player_report(
+        player, games, report, correlation_id=correlation_id
+    )
     db.commit()
     db.refresh(report)
 
@@ -437,7 +437,9 @@ async def get_shared_report(
     return report
 
 
-@router.patch("/{player_id}/reports/{report_id}/share", response_model=PlayerReportResponse)
+@router.patch(
+    "/{player_id}/reports/{report_id}/share", response_model=PlayerReportResponse
+)
 async def toggle_report_sharing(
     player_id: UUID,
     report_id: UUID,
@@ -468,4 +470,3 @@ async def toggle_report_sharing(
     db.refresh(report)
 
     return report
-

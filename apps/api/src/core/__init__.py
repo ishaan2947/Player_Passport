@@ -1,4 +1,4 @@
-# Core module
+# Core module for Player Passport
 from src.core.config import get_settings, Settings
 from src.core.database import get_db, Base, engine, SessionLocal
 from src.core.auth import (
@@ -17,18 +17,6 @@ from src.core.exceptions import (
     RateLimitError,
     ExternalServiceError,
     register_exception_handlers,
-)
-from src.core.rbac import (
-    check_team_membership,
-    get_team_for_user,
-    get_game_for_user,
-    get_report_for_user,
-    TeamMemberAccess,
-    TeamCoachAccess,
-    TeamOwnerAccess,
-    GameMemberAccess,
-    GameCoachAccess,
-    ReportAccess,
 )
 
 __all__ = [
@@ -57,15 +45,4 @@ __all__ = [
     "RateLimitError",
     "ExternalServiceError",
     "register_exception_handlers",
-    # RBAC
-    "check_team_membership",
-    "get_team_for_user",
-    "get_game_for_user",
-    "get_report_for_user",
-    "TeamMemberAccess",
-    "TeamCoachAccess",
-    "TeamOwnerAccess",
-    "GameMemberAccess",
-    "GameCoachAccess",
-    "ReportAccess",
 ]

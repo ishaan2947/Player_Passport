@@ -1,0 +1,50 @@
+# Pre-commit hooks for Player Passport
+# Install: pip install pre-commit && pre-commit install
+
+repos:
+  # General
+  - repo: https://github.com/pre-commit/pre-commit-hooks
+    rev: v4.5.0
+    hooks:
+      - id: trailing-whitespace
+      - id: end-of-file-fixer
+      - id: check-yaml
+      - id: check-json
+      - id: check-added-large-files
+        args: ['--maxkb=1000']
+      - id: check-merge-conflict
+      - id: detect-private-key
+
+  # Python - Backend
+  - repo: https://github.com/astral-sh/ruff-pre-commit
+    rev: v0.1.6
+    hooks:
+      - id: ruff
+        args: [--fix]
+        files: ^apps/api/
+      - id: ruff-format
+        files: ^apps/api/
+
+  # Frontend (optional - run via npm)
+  - repo: local
+    hooks:
+      - id: frontend-lint
+        name: Frontend ESLint
+        entry: bash -c 'cd apps/web && npm run lint'
+        language: system
+        files: ^apps/web/src/
+        types: [ts, tsx]
+        pass_filenames: false
+      - id: frontend-typecheck
+        name: Frontend TypeScript Check
+        entry: bash -c 'cd apps/web && npm run type-check'
+        language: system
+        files: ^apps/web/src/
+        types: [ts, tsx]
+        pass_filenames: false
+
+# CI configuration
+ci:
+  autofix_prs: true
+  autoupdate_schedule: weekly
+

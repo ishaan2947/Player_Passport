@@ -5,7 +5,6 @@ This schema validates the AI-generated report JSON to ensure it matches
 the expected structure and contains safe, appropriate content.
 """
 
-from datetime import date
 from typing import Literal
 
 from pydantic import BaseModel, Field, field_validator
@@ -48,13 +47,17 @@ class DevelopmentReport(BaseModel):
     key_metrics: list[KeyMetric] = Field(..., min_length=3, max_length=6)
     next_2_weeks_focus: list[str] = Field(..., min_length=3, max_length=5)
 
-    @field_validator("strengths", "growth_areas", "trend_insights", "next_2_weeks_focus")
+    @field_validator(
+        "strengths", "growth_areas", "trend_insights", "next_2_weeks_focus"
+    )
     @classmethod
     def validate_list_items(cls, v: list[str]) -> list[str]:
         """Ensure list items are non-empty and reasonable length."""
         for item in v:
             if not item.strip() or len(item) > 300:
-                raise ValueError("All list items must be non-empty and under 300 characters")
+                raise ValueError(
+                    "All list items must be non-empty and under 300 characters"
+                )
         return v
 
 
@@ -114,10 +117,16 @@ class PlayerProfile(BaseModel):
     def validate_headline(cls, v: str) -> str:
         """Ensure headline doesn't make recruiting guarantees."""
         v_lower = v.lower()
-        forbidden_terms = ["guaranteed scholarship", "will be recruited", "college bound"]
+        forbidden_terms = [
+            "guaranteed scholarship",
+            "will be recruited",
+            "college bound",
+        ]
         for term in forbidden_terms:
             if term in v_lower:
-                raise ValueError(f"Headline cannot contain guarantee language: '{term}'")
+                raise ValueError(
+                    f"Headline cannot contain guarantee language: '{term}'"
+                )
         return v
 
 
@@ -183,17 +192,29 @@ class PlayerReportContent(BaseModel):
         """Ensure text content doesn't contain inappropriate guarantees."""
         v_lower = v.lower()
         # Check for medical advice
-        medical_keywords = ["diagnose", "treatment", "medication", "injury treatment", "see a doctor"]
+        medical_keywords = [
+            "diagnose",
+            "treatment",
+            "medication",
+            "injury treatment",
+            "see a doctor",
+        ]
         for keyword in medical_keywords:
             if keyword in v_lower:
                 raise ValueError(f"Content cannot contain medical advice: '{keyword}'")
-        
+
         # Check for recruiting guarantees
-        guarantee_keywords = ["guaranteed scholarship", "definitely will", "assured acceptance"]
+        guarantee_keywords = [
+            "guaranteed scholarship",
+            "definitely will",
+            "assured acceptance",
+        ]
         for keyword in guarantee_keywords:
             if keyword in v_lower:
-                raise ValueError(f"Content cannot contain recruiting guarantees: '{keyword}'")
-        
+                raise ValueError(
+                    f"Content cannot contain recruiting guarantees: '{keyword}'"
+                )
+
         return v
 
     model_config = {
@@ -205,7 +226,7 @@ class PlayerReportContent(BaseModel):
                         "report_window": "Dec 1-15, 2024",
                         "confidence_level": "medium",
                         "confidence_reason": "Based on 4 games with complete stats",
-                        "disclaimer": "This report is based on limited data and does not guarantee future performance or recruiting outcomes."
+                        "disclaimer": "This report is based on limited data and does not guarantee future performance or recruiting outcomes.",
                     },
                     "growth_summary": "...",
                     "development_report": {...},
@@ -213,9 +234,8 @@ class PlayerReportContent(BaseModel):
                     "motivational_message": "...",
                     "college_fit_indicator_v1": {...},
                     "player_profile": {...},
-                    "structured_data": {...}
+                    "structured_data": {...},
                 }
             ]
         }
     }
-

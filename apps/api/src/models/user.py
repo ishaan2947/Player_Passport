@@ -1,5 +1,5 @@
 """
-User model.
+User model for Player Passport.
 """
 
 import uuid
@@ -13,7 +13,7 @@ from src.core.database import Base
 
 
 class User(Base):
-    """User model - synced with Clerk."""
+    """User model - synced with Clerk authentication."""
 
     __tablename__ = "users"
 
@@ -41,16 +41,6 @@ class User(Base):
     )
 
     # Relationships
-    owned_teams: Mapped[list["Team"]] = relationship(  # noqa: F821
-        "Team",
-        back_populates="owner",
-        cascade="all, delete-orphan",
-    )
-    team_memberships: Mapped[list["TeamMember"]] = relationship(  # noqa: F821
-        "TeamMember",
-        back_populates="user",
-        cascade="all, delete-orphan",
-    )
     players: Mapped[list["Player"]] = relationship(  # noqa: F821
         "Player",
         back_populates="user",

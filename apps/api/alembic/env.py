@@ -1,5 +1,5 @@
 """
-Alembic environment configuration.
+Alembic environment configuration for Player Passport.
 """
 
 import os
@@ -12,14 +12,6 @@ from sqlalchemy import engine_from_config, pool
 from src.core.database import Base
 from src.models import (
     User,
-    Team,
-    TeamMember,
-    Game,
-    BasketballGameStats,
-    Report,
-    Feedback,
-    KnowledgeChunk,
-    # Player Passport models
     Player,
     PlayerGame,
     PlayerReport,
@@ -38,7 +30,7 @@ target_metadata = Base.metadata
 # Get database URL from environment
 database_url = os.getenv(
     "DATABASE_URL",
-    "postgresql://emg_user:emg_password@localhost:5432/explain_my_game"
+    "postgresql://emg_user:emg_password@localhost:5432/explain_my_game",
 )
 
 # Fix for Fly.io/Heroku: postgres:// -> postgresql://
@@ -100,4 +92,3 @@ if context.is_offline_mode():
     run_migrations_offline()
 else:
     run_migrations_online()
-

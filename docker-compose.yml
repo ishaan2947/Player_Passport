@@ -32,7 +32,6 @@ services:
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
       ENVIRONMENT: ${ENVIRONMENT:-development}
       LOG_LEVEL: ${LOG_LEVEL:-INFO}
-      SEED_DATABASE: ${SEED_DATABASE:-true}
     ports:
       - "8000:8000"
     depends_on:

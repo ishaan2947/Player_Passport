@@ -1,14 +1,11 @@
-"""Users API router."""
+"""Users API router for Player Passport."""
 
 from fastapi import APIRouter, HTTPException, status
 
 import structlog
 
-from src.core import (
-    CurrentUser,
-    DbSession,
-)
-from src.models import Team, TeamMember, Game, BasketballGameStats, Report
+from src.core import CurrentUser, DbSession
+from src.models import Player, PlayerGame, PlayerReport
 
 logger = structlog.get_logger()
 
@@ -20,17 +17,10 @@ async def get_current_user(
     current_user: CurrentUser,
     db: DbSession,
 ) -> dict:
-    """
-    Get current user information.
-    """
-    # Get team count
-    team_count = (
-        db.query(TeamMember).filter(TeamMember.user_id == current_user.id).count()
-    )
-
-    # Get owned teams count
-    owned_teams_count = (
-        db.query(Team).filter(Team.owner_user_id == current_user.id).count()
+    """Get current user information."""
+    # Get player count
+    player_count = (
+        db.query(Player).filter(Player.user_id == current_user.id).count()
     )
 
     return {
@@ -38,8 +28,7 @@ async def get_current_user(
         "email": current_user.email,
         "clerk_id": current_user.clerk_user_id,
         "created_at": current_user.created_at.isoformat(),
-        "team_count": team_count,
-        "owned_teams_count": owned_teams_count,
+        "player_count": player_count,
     }
 
 
@@ -51,11 +40,7 @@ async def delete_current_user(
     """
     Delete the current user's account.
 
-    This will:
-    - Delete all teams the user owns (along with their games, stats, reports)
-    - Remove the user from all teams they're a member of
-    - Delete the user record
-
+    This will delete all players, games, and reports associated with the user.
     This action is irreversible.
     """
     user_id = current_user.id
@@ -67,31 +52,18 @@ async def delete_current_user(
     )
 
     try:
-        # 1. Delete all teams the user owns (cascade will handle games, stats, reports)
-        owned_teams = db.query(Team).filter(Team.owner_user_id == user_id).all()
-        for team in owned_teams:
-            logger.info(
-                "Deleting owned team",
-                team_id=str(team.id),
-                team_name=team.name,
-            )
-            db.delete(team)
+        # Get all players owned by this user
+        players = db.query(Player).filter(Player.user_id == user_id).all()
+        deleted_players = len(players)
 
-        # 2. Remove user from teams they're a member of (but don't own)
-        memberships = db.query(TeamMember).filter(TeamMember.user_id == user_id).all()
-        for membership in memberships:
-            db.delete(membership)
-
-        # 3. Delete the user record
+        # Delete user (cascade will handle players, games, reports)
         db.delete(current_user)
-
         db.commit()
 
         logger.info(
             "Account deleted successfully",
             user_id=str(user_id),
-            deleted_teams=len(owned_teams),
-            deleted_memberships=len(memberships),
+            deleted_players=deleted_players,
         )
 
     except Exception as e:
@@ -117,75 +89,66 @@ async def export_user_data(
 
     Returns all data associated with the user's account.
     """
-    # Get all teams
-    teams_query = (
-        db.query(Team)
-        .join(TeamMember, Team.id == TeamMember.team_id)
-        .filter(TeamMember.user_id == current_user.id)
-        .all()
-    )
+    # Get all players
+    players = db.query(Player).filter(Player.user_id == current_user.id).all()
 
-    teams_data = []
-    for team in teams_query:
-        # Get games for this team
-        games = db.query(Game).filter(Game.team_id == team.id).all()
-        games_data = []
-
-        for game in games:
-            # Get stats
-            stats = (
-                db.query(BasketballGameStats)
-                .filter(BasketballGameStats.game_id == game.id)
-                .first()
-            )
-
-            # Get report
-            report = db.query(Report).filter(Report.game_id == game.id).first()
-
-            games_data.append(
-                {
-                    "id": str(game.id),
-                    "opponent_name": game.opponent_name,
-                    "game_date": game.game_date.isoformat(),
-                    "location": game.location,
-                    "notes": game.notes,
-                    "stats": {
-                        "points_for": stats.points_for,
-                        "points_against": stats.points_against,
-                        "fg_made": stats.fg_made,
-                        "fg_att": stats.fg_att,
-                        "three_made": stats.three_made,
-                        "three_att": stats.three_att,
-                        "ft_made": stats.ft_made,
-                        "ft_att": stats.ft_att,
-                        "rebounds_off": stats.rebounds_off,
-                        "rebounds_def": stats.rebounds_def,
-                        "assists": stats.assists,
-                        "steals": stats.steals,
-                        "blocks": stats.blocks,
-                        "turnovers": stats.turnovers,
-                        "fouls": stats.fouls,
-                    }
-                    if stats
-                    else None,
-                    "report": {
-                        "status": report.status,
-                        "report_json": report.report_json,
-                        "created_at": report.created_at.isoformat(),
-                    }
-                    if report
-                    else None,
-                }
-            )
-
-        teams_data.append(
+    players_data = []
+    for player in players:
+        # Get games
+        games = db.query(PlayerGame).filter(PlayerGame.player_id == player.id).all()
+        games_data = [
             {
-                "id": str(team.id),
-                "name": team.name,
-                "sport": team.sport,
-                "is_owner": team.owner_user_id == current_user.id,
-                "created_at": team.created_at.isoformat(),
+                "id": str(g.id),
+                "game_date": g.game_date.isoformat(),
+                "opponent": g.opponent,
+                "game_label": g.game_label,
+                "minutes": g.minutes,
+                "pts": g.pts,
+                "reb": g.reb,
+                "ast": g.ast,
+                "stl": g.stl,
+                "blk": g.blk,
+                "tov": g.tov,
+                "fgm": g.fgm,
+                "fga": g.fga,
+                "tpm": g.tpm,
+                "tpa": g.tpa,
+                "ftm": g.ftm,
+                "fta": g.fta,
+                "notes": g.notes,
+                "created_at": g.created_at.isoformat(),
+            }
+            for g in games
+        ]
+
+        # Get reports
+        reports = (
+            db.query(PlayerReport).filter(PlayerReport.player_id == player.id).all()
+        )
+        reports_data = [
+            {
+                "id": str(r.id),
+                "status": r.status,
+                "report_json": r.report_json,
+                "model_used": r.model_used,
+                "prompt_version": r.prompt_version,
+                "created_at": r.created_at.isoformat(),
+            }
+            for r in reports
+        ]
+
+        players_data.append(
+            {
+                "id": str(player.id),
+                "name": player.name,
+                "grade": player.grade,
+                "position": player.position,
+                "height": player.height,
+                "team": player.team,
+                "goals": player.goals,
+                "created_at": player.created_at.isoformat(),
                 "games": games_data,
+                "reports": reports_data,
             }
         )
 
@@ -196,6 +159,6 @@ async def export_user_data(
             "clerk_id": current_user.clerk_user_id,
             "created_at": current_user.created_at.isoformat(),
         },
-        "teams": teams_data,
+        "players": players_data,
         "exported_at": db.execute("SELECT NOW()").scalar().isoformat(),
     }

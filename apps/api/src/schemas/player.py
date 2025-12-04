@@ -178,7 +178,9 @@ class PlayerReportResponse(BaseModel):
     status: ReportStatus
     report_window: str | None
     report_json: dict | None
-    model_used: str | None  # Note: This conflicts with Pydantic's protected namespace but matches DB schema
+    model_used: (
+        str | None
+    )  # Note: This conflicts with Pydantic's protected namespace but matches DB schema
     prompt_version: str | None
     error_text: str | None
     share_token: str | None
@@ -326,4 +328,3 @@ class FullPlayerReport(BaseModel):
     college_fit_indicator_v1: CollegeFitIndicator
     player_profile: PlayerProfile
     structured_data: StructuredData
-

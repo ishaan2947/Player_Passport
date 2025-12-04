@@ -20,9 +20,6 @@ from src.core.database import engine
 from src.core.exceptions import register_exception_handlers
 from src.core.validation import validate_config_or_exit
 from src.routers import (
-    teams_router,
-    games_router,
-    reports_router,
     users_router,
     players_router,
 )
@@ -141,11 +138,8 @@ app.add_middleware(
 register_exception_handlers(app)
 
 # Include routers
-app.include_router(teams_router)
-app.include_router(games_router)
-app.include_router(reports_router)
 app.include_router(users_router)
-app.include_router(players_router)  # Player Passport
+app.include_router(players_router)
 
 
 @app.middleware("http")
@@ -177,7 +171,7 @@ async def logging_middleware(request: Request, call_next) -> Response:
 
     # Generate or use existing correlation ID
     correlation_id = request.headers.get("X-Correlation-ID") or str(uuid.uuid4())
-    
+
     # Add correlation ID to request state for use in handlers
     request.state.correlation_id = correlation_id
 

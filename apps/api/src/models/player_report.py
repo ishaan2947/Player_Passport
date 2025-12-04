@@ -111,4 +111,3 @@ class PlayerReport(Base):
 
     def __repr__(self) -> str:
         return f"<PlayerReport player={self.player_id} status={self.status}>"
-

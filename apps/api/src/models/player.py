@@ -32,9 +32,15 @@ class Player(Base):
 
     # Player info
     name: Mapped[str] = mapped_column(String(255), nullable=False)
-    grade: Mapped[str] = mapped_column(String(50), nullable=False)  # e.g., "9th", "10th"
-    position: Mapped[str] = mapped_column(String(50), nullable=False)  # Guard, Wing, Big
-    height: Mapped[str | None] = mapped_column(String(20), nullable=True)  # e.g., "5'10"
+    grade: Mapped[str] = mapped_column(
+        String(50), nullable=False
+    )  # e.g., "9th", "10th"
+    position: Mapped[str] = mapped_column(
+        String(50), nullable=False
+    )  # Guard, Wing, Big
+    height: Mapped[str | None] = mapped_column(
+        String(20), nullable=True
+    )  # e.g., "5'10"
     team: Mapped[str | None] = mapped_column(String(255), nullable=True)
     goals: Mapped[list[str] | None] = mapped_column(ARRAY(String), nullable=True)
 
@@ -85,4 +91,3 @@ class Player(Base):
 
     def __repr__(self) -> str:
         return f"<Player {self.name} ({self.position})>"
-
