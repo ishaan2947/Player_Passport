@@ -92,12 +92,6 @@ class PlayerReport(Base):
         "Player",
         back_populates="reports",
     )
-    feedback: Mapped[list["Feedback"]] = relationship(  # noqa: F821
-        "Feedback",
-        back_populates="player_report",
-        cascade="all, delete-orphan",
-        foreign_keys="Feedback.player_report_id",
-    )
 
     @property
     def is_completed(self) -> bool:
