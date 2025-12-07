@@ -2,6 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { ErrorBoundary } from "@/components/error-boundary";
@@ -24,16 +25,6 @@ function PlayerIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
-    </svg>
-  );
-}
-
-function BasketballIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth={1.5}>
-      <circle cx="12" cy="12" r="10" />
-      <path d="M12 2a14.5 14.5 0 0 0 0 20 14.5 14.5 0 0 0 0-20" />
-      <path d="M2 12h20" />
     </svg>
   );
 }
@@ -88,9 +79,13 @@ export default function DashboardLayout({
           <MenuIcon className="h-5 w-5" />
         </button>
         <Link href="/dashboard" className="flex items-center gap-2">
-          <div className="flex h-7 w-7 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-            <BasketballIcon className="h-4 w-4" />
-          </div>
+          <Image 
+            src="/logo.png" 
+            alt="Player Passport" 
+            width={32} 
+            height={32}
+            className="h-8 w-8 object-contain"
+          />
           <span className="font-bold">Player Passport</span>
         </Link>
       </header>
@@ -113,9 +108,13 @@ export default function DashboardLayout({
         {/* Logo */}
         <div className="flex h-16 items-center justify-between gap-3 border-b border-border px-6">
           <Link href="/dashboard" className="flex items-center gap-3">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary text-primary-foreground">
-              <BasketballIcon className="h-5 w-5" />
-            </div>
+            <Image 
+              src="/logo.png" 
+              alt="Player Passport" 
+              width={36} 
+              height={36}
+              className="h-9 w-9 object-contain"
+            />
             <span className="text-lg font-bold">Player Passport</span>
           </Link>
           <button

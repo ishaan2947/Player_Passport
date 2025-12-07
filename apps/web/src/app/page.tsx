@@ -1,15 +1,5 @@
 import Link from "next/link";
-
-function PassportIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
-      <rect x="4" y="3" width="16" height="18" rx="2" />
-      <circle cx="12" cy="10" r="3" />
-      <path d="M8 17h8" />
-      <path d="M8 14h8" />
-    </svg>
-  );
-}
+import Image from "next/image";
 
 const features = [
   {
@@ -82,9 +72,13 @@ export default function Home() {
       <header className="sticky top-0 z-50 border-b border-border/40 bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
         <div className="container flex h-16 items-center justify-between">
           <Link href="/" className="flex items-center gap-2">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 text-white">
-              <PassportIcon className="h-5 w-5" />
-            </div>
+            <Image 
+              src="/logo.png" 
+              alt="Player Passport" 
+              width={40} 
+              height={40}
+              className="h-10 w-10 object-contain"
+            />
             <span className="text-xl font-bold">Player Passport</span>
           </Link>
           <nav className="flex items-center gap-2 sm:gap-4">
@@ -291,9 +285,13 @@ export default function Home() {
         <div className="container">
           <div className="flex flex-col items-center justify-between gap-6 md:flex-row">
             <div className="flex items-center gap-2">
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-orange-500 to-amber-500 text-white">
-                <PassportIcon className="h-5 w-5" />
-              </div>
+              <Image 
+                src="/logo.png" 
+                alt="Player Passport" 
+                width={36} 
+                height={36}
+                className="h-9 w-9 object-contain"
+              />
               <span className="font-bold">Player Passport</span>
             </div>
             <nav className="flex flex-wrap justify-center gap-6 text-sm text-muted-foreground">
