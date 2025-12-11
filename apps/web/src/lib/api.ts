@@ -146,4 +146,11 @@ export async function getCurrentUser(token?: string | null): Promise<UserInfo> {
   return fetchApi<UserInfo>("/users/me", {}, token);
 }
 
+// Demo Data
+export async function seedDemoPlayers(token?: string | null): Promise<Player[]> {
+  return fetchApi<Player[]>("/players/seed-demo", {
+    method: "POST",
+  }, token);
+}
+
 export { ApiError };

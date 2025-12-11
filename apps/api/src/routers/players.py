@@ -470,3 +470,151 @@ async def toggle_report_sharing(
     db.refresh(report)
 
     return report
+
+
+# ============================================================================
+# Demo Data Seeding
+# ============================================================================
+
+
+@router.post("/seed-demo", response_model=list[PlayerResponse], status_code=status.HTTP_201_CREATED)
+async def seed_demo_players(
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> list[Player]:
+    """Seed demo players with sample game data to showcase the app."""
+    from datetime import date, timedelta
+    import random
+
+    # Demo players data
+    demo_players = [
+        {
+            "name": "Marcus Thompson",
+            "grade": "Sophomore",
+            "position": "PG",
+            "height": "5'10\"",
+            "team": "Riverside High",
+            "goals": ["Make varsity", "Improve ball handling", "Better court vision"],
+            "competition_level": "JV",
+            "role": "Starting point guard",
+        },
+        {
+            "name": "Jaylen Williams",
+            "grade": "Junior",
+            "position": "SG",
+            "height": "6'1\"",
+            "team": "Central Academy",
+            "goals": ["Score 15+ PPG", "Improve 3PT%", "College exposure"],
+            "competition_level": "Varsity",
+            "role": "Sixth man / scoring guard",
+        },
+        {
+            "name": "DeAndre Jackson",
+            "grade": "Freshman",
+            "position": "SF",
+            "height": "6'3\"",
+            "team": "Westside Warriors",
+            "goals": ["Develop post moves", "Get stronger", "Earn playing time"],
+            "competition_level": "JV",
+            "role": "Developing wing player",
+        },
+    ]
+
+    created_players = []
+
+    for player_data in demo_players:
+        # Check if player with same name already exists for this user
+        existing = db.execute(
+            select(Player).where(
+                Player.user_id == current_user.id,
+                Player.name == player_data["name"],
+            )
+        ).scalar_one_or_none()
+
+        if existing:
+            continue  # Skip if already exists
+
+        # Create player
+        player = Player(
+            user_id=current_user.id,
+            name=player_data["name"],
+            grade=player_data["grade"],
+            position=player_data["position"],
+            height=player_data["height"],
+            team=player_data["team"],
+            goals=player_data["goals"],
+            competition_level=player_data.get("competition_level"),
+            role=player_data.get("role"),
+        )
+        db.add(player)
+        db.flush()  # Get player ID
+
+        # Generate 4-5 sample games for each player
+        num_games = random.randint(4, 5)
+        base_date = date.today() - timedelta(days=30)
+
+        for i in range(num_games):
+            game_date = base_date + timedelta(days=i * 5 + random.randint(0, 2))
+            opponents = ["Lincoln High", "Oak Valley", "Metro Prep", "Tech Academy", "St. Mary's"]
+
+            # Generate realistic stats based on position
+            if player_data["position"] in ["PG", "SG"]:
+                pts = random.randint(8, 22)
+                reb = random.randint(2, 6)
+                ast = random.randint(3, 9)
+                stl = random.randint(1, 4)
+                blk = random.randint(0, 1)
+            elif player_data["position"] in ["SF", "PF"]:
+                pts = random.randint(6, 18)
+                reb = random.randint(4, 10)
+                ast = random.randint(1, 4)
+                stl = random.randint(0, 3)
+                blk = random.randint(0, 3)
+            else:  # Center
+                pts = random.randint(4, 14)
+                reb = random.randint(6, 14)
+                ast = random.randint(0, 3)
+                stl = random.randint(0, 2)
+                blk = random.randint(1, 4)
+
+            tov = random.randint(1, 4)
+            minutes = random.randint(18, 32)
+
+            # Shooting stats
+            fga = random.randint(6, 16)
+            fgm = random.randint(int(fga * 0.3), int(fga * 0.6))
+            tpa = random.randint(1, 6)
+            tpm = random.randint(0, min(tpa, 3))
+            fta = random.randint(1, 8)
+            ftm = random.randint(int(fta * 0.5), fta)
+
+            game = PlayerGame(
+                player_id=player.id,
+                game_date=game_date,
+                opponent=random.choice(opponents),
+                game_label=f"Game {i + 1}",
+                minutes=minutes,
+                pts=pts,
+                reb=reb,
+                ast=ast,
+                stl=stl,
+                blk=blk,
+                tov=tov,
+                fgm=fgm,
+                fga=fga,
+                tpm=tpm,
+                tpa=tpa,
+                ftm=ftm,
+                fta=fta,
+            )
+            db.add(game)
+
+        created_players.append(player)
+
+    db.commit()
+
+    # Refresh all created players
+    for player in created_players:
+        db.refresh(player)
+
+    return created_players

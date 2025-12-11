@@ -3,7 +3,7 @@
 import { useEffect, useState, useCallback } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
-import { getPlayers, createPlayer, deletePlayer } from "@/lib/api";
+import { getPlayers, createPlayer, deletePlayer, seedDemoPlayers } from "@/lib/api";
 import type { Player, CreatePlayerInput } from "@/types/api";
 import { DashboardSkeleton } from "@/components/ui/skeleton";
 
@@ -146,7 +146,15 @@ function AddPlayerModal({
   );
 }
 
-function EmptyPlayersState({ onAddPlayer }: { onAddPlayer: () => void }) {
+function EmptyPlayersState({ 
+  onAddPlayer, 
+  onLoadDemo, 
+  isLoadingDemo 
+}: { 
+  onAddPlayer: () => void; 
+  onLoadDemo: () => void;
+  isLoadingDemo: boolean;
+}) {
   return (
     <div className="flex flex-col items-center justify-center py-16 text-center">
       <div className="mb-6 flex h-20 w-20 items-center justify-center rounded-full bg-gradient-to-br from-orange-500/20 to-amber-500/20">
@@ -168,15 +176,30 @@ function EmptyPlayersState({ onAddPlayer }: { onAddPlayer: () => void }) {
       <p className="mb-6 max-w-sm text-muted-foreground">
         Add your first player to start tracking their development, games, and get AI-powered coaching insights.
       </p>
-      <button
-        onClick={onAddPlayer}
-        className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:shadow-orange-500/25"
-      >
-        <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
-        </svg>
-        Add Your First Player
-      </button>
+      <div className="flex flex-col gap-3 sm:flex-row">
+        <button
+          onClick={onAddPlayer}
+          className="inline-flex items-center gap-2 rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 px-6 py-3 text-sm font-semibold text-white shadow-lg transition-all hover:shadow-orange-500/25"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4v16m8-8H4" />
+          </svg>
+          Add Your First Player
+        </button>
+        <button
+          onClick={onLoadDemo}
+          disabled={isLoadingDemo}
+          className="inline-flex items-center gap-2 rounded-lg border border-border bg-card px-6 py-3 text-sm font-semibold text-foreground shadow-sm transition-all hover:bg-secondary disabled:opacity-50"
+        >
+          <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+          </svg>
+          {isLoadingDemo ? "Loading Demo..." : "Try Demo Players"}
+        </button>
+      </div>
+      <p className="mt-4 text-xs text-muted-foreground">
+        Demo players come with sample games so you can explore reports immediately
+      </p>
     </div>
   );
 }
@@ -189,38 +212,28 @@ function PlayerCard({ player, onDelete }: { player: Player; onDelete: (id: strin
       {/* Background gradient */}
       <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-amber-500/5 opacity-0 transition-opacity group-hover:opacity-100" />
       
-      <Link href={`/dashboard/players/${player.id}`} className="block p-6">
-        <div className="flex items-start justify-between">
-          <div className="flex items-center gap-4">
-            <div className="flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-amber-500 text-xl font-bold text-white">
-              {player.name.charAt(0).toUpperCase()}
-            </div>
-            <div>
-              <h3 className="text-lg font-bold">{player.name}</h3>
-              <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
-                {player.position && (
-                  <span className="rounded-full bg-secondary px-2.5 py-0.5 font-medium">
-                    {player.position}
-                  </span>
-                )}
-                {player.grade && <span>{player.grade}</span>}
-                {player.team && (
-                  <>
-                    <span>•</span>
-                    <span>{player.team}</span>
-                  </>
-                )}
-              </div>
+      <Link href={`/dashboard/players/${player.id}`} className="block p-6 pr-12">
+        <div className="flex items-start gap-4">
+          <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-amber-500 text-xl font-bold text-white">
+            {player.name.charAt(0).toUpperCase()}
+          </div>
+          <div className="min-w-0 flex-1">
+            <h3 className="text-lg font-bold">{player.name}</h3>
+            <div className="mt-1 flex flex-wrap items-center gap-2 text-sm text-muted-foreground">
+              {player.position && (
+                <span className="rounded-full bg-secondary px-2.5 py-0.5 font-medium">
+                  {player.position}
+                </span>
+              )}
+              {player.grade && <span>{player.grade}</span>}
+              {player.team && (
+                <>
+                  <span>•</span>
+                  <span>{player.team}</span>
+                </>
+              )}
             </div>
           </div>
-          <svg
-            className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-orange-500"
-            fill="none"
-            viewBox="0 0 24 24"
-            stroke="currentColor"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
         </div>
         
         {player.goals && player.goals.length > 0 && (
@@ -242,18 +255,30 @@ function PlayerCard({ player, onDelete }: { player: Player; onDelete: (id: strin
         )}
       </Link>
 
-      {/* Delete button */}
-      <div className="absolute right-2 top-2">
+      {/* Arrow indicator - positioned on the right edge, vertically centered */}
+      <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
+        <svg
+          className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-orange-500"
+          fill="none"
+          viewBox="0 0 24 24"
+          stroke="currentColor"
+        >
+          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+        </svg>
+      </div>
+
+      {/* Delete button - top right corner, separate from arrow */}
+      <div className="absolute right-2 top-2 z-10">
         {showDeleteConfirm ? (
-          <div className="flex items-center gap-1 rounded-lg bg-destructive/20 p-1">
+          <div className="flex items-center gap-1 rounded-lg bg-card border border-destructive/30 p-1 shadow-lg">
             <button
-              onClick={() => onDelete(player.id)}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(player.id); }}
               className="rounded px-2 py-1 text-xs font-medium text-destructive hover:bg-destructive/20"
             >
-              Confirm
+              Delete
             </button>
             <button
-              onClick={() => setShowDeleteConfirm(false)}
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDeleteConfirm(false); }}
               className="rounded px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-secondary"
             >
               Cancel
@@ -261,8 +286,8 @@ function PlayerCard({ player, onDelete }: { player: Player; onDelete: (id: strin
           </div>
         ) : (
           <button
-            onClick={() => setShowDeleteConfirm(true)}
-            className="rounded-lg p-2 text-muted-foreground opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDeleteConfirm(true); }}
+            className="rounded-lg p-1.5 text-muted-foreground opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
             title="Delete player"
           >
             <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -280,6 +305,7 @@ export default function PlayersPage() {
   const [loading, setLoading] = useState(true);
   const [showAddModal, setShowAddModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
+  const [isLoadingDemo, setIsLoadingDemo] = useState(false);
 
   const loadPlayers = useCallback(async () => {
     try {
@@ -325,6 +351,28 @@ export default function PlayersPage() {
     }
   }
 
+  async function handleLoadDemoPlayers() {
+    setIsLoadingDemo(true);
+    try {
+      const demoPlayers = await seedDemoPlayers();
+      if (demoPlayers.length === 0) {
+        toast.info("Demo players already exist", {
+          description: "The demo players have already been added to your account.",
+        });
+      } else {
+        setPlayers([...players, ...demoPlayers]);
+        toast.success(`Added ${demoPlayers.length} demo players!`, {
+          description: "Each player has 4-5 sample games. Try generating a report!",
+        });
+      }
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to load demo players";
+      toast.error("Failed to load demo players", { description: message });
+    } finally {
+      setIsLoadingDemo(false);
+    }
+  }
+
   if (loading) return <DashboardSkeleton />;
 
   return (
@@ -352,7 +400,11 @@ export default function PlayersPage() {
 
       {/* Players Grid */}
       {players.length === 0 ? (
-        <EmptyPlayersState onAddPlayer={() => setShowAddModal(true)} />
+        <EmptyPlayersState 
+          onAddPlayer={() => setShowAddModal(true)} 
+          onLoadDemo={handleLoadDemoPlayers}
+          isLoadingDemo={isLoadingDemo}
+        />
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
           {players.map((player) => (
