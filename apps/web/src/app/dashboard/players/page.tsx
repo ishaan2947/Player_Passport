@@ -209,11 +209,12 @@ function PlayerCard({ player, onDelete }: { player: Player; onDelete: (id: strin
 
   return (
     <div className="group relative overflow-hidden rounded-xl border border-border bg-card transition-all hover:border-orange-500/50 hover:shadow-lg hover:shadow-orange-500/5">
-      {/* Background gradient */}
-      <div className="absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-amber-500/5 opacity-0 transition-opacity group-hover:opacity-100" />
+      {/* Background gradient - pointer-events-none so it doesn't block clicks */}
+      <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-orange-500/5 via-transparent to-amber-500/5 opacity-0 transition-opacity group-hover:opacity-100" />
       
-      <Link href={`/dashboard/players/${player.id}`} className="block p-6 pr-12">
-        <div className="flex items-start gap-4">
+      {/* Main clickable area */}
+      <Link href={`/dashboard/players/${player.id}`} className="relative block p-6">
+        <div className="flex items-start gap-4 pr-8">
           <div className="flex h-14 w-14 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-orange-500 to-amber-500 text-xl font-bold text-white">
             {player.name.charAt(0).toUpperCase()}
           </div>
@@ -233,6 +234,17 @@ function PlayerCard({ player, onDelete }: { player: Player; onDelete: (id: strin
                 </>
               )}
             </div>
+          </div>
+          {/* Arrow inside the link */}
+          <div className="absolute right-6 top-1/2 -translate-y-1/2">
+            <svg
+              className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-orange-500"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
+            </svg>
           </div>
         </div>
         
@@ -255,20 +267,8 @@ function PlayerCard({ player, onDelete }: { player: Player; onDelete: (id: strin
         )}
       </Link>
 
-      {/* Arrow indicator - positioned on the right edge, vertically centered */}
-      <div className="pointer-events-none absolute right-4 top-1/2 -translate-y-1/2">
-        <svg
-          className="h-5 w-5 text-muted-foreground transition-transform group-hover:translate-x-1 group-hover:text-orange-500"
-          fill="none"
-          viewBox="0 0 24 24"
-          stroke="currentColor"
-        >
-          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-        </svg>
-      </div>
-
-      {/* Delete button - top right corner, separate from arrow */}
-      <div className="absolute right-2 top-2 z-10">
+      {/* Delete button - top right corner, above everything */}
+      <div className="absolute right-2 top-2 z-20">
         {showDeleteConfirm ? (
           <div className="flex items-center gap-1 rounded-lg bg-card border border-destructive/30 p-1 shadow-lg">
             <button
