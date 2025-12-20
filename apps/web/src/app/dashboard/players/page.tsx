@@ -1,12 +1,17 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { toast } from "sonner";
 import { getPlayers, createPlayer, deletePlayer, seedDemoPlayers } from "@/lib/api";
 import type { Player, CreatePlayerInput } from "@/types/api";
 import { DashboardSkeleton } from "@/components/ui/skeleton";
-import { PlayerModal } from "@/components/PlayerModal";
+
+// Lazy load modal for better performance
+const PlayerModal = dynamic(() => import("@/components/PlayerModal").then((mod) => ({ default: mod.PlayerModal })), {
+  ssr: false,
+});
 
 function EmptyPlayersState({ 
   onAddPlayer, 

@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, memo } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
@@ -15,8 +16,14 @@ import {
   getPlayerReports,
   deletePlayerReport,
 } from "@/lib/api";
-import { PlayerModal } from "@/components/PlayerModal";
-import { GameModal } from "@/components/GameModal";
+
+// Lazy load modals for better performance
+const PlayerModal = dynamic(() => import("@/components/PlayerModal").then((mod) => ({ default: mod.PlayerModal })), {
+  ssr: false,
+});
+const GameModal = dynamic(() => import("@/components/GameModal").then((mod) => ({ default: mod.GameModal })), {
+  ssr: false,
+});
 import {
   AlertDialog,
   AlertDialogContent,
@@ -493,7 +500,7 @@ export default function PlayerDetailPage() {
           <div className="mb-4 flex items-center justify-between">
             <h2 className="text-lg font-semibold">Game Log</h2>
             <button
-              onClick={() => setShowAddGameModal(true)}
+              onClick={handleAddGameClick}
               className="inline-flex items-center gap-2 rounded-lg bg-primary px-3 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90"
             >
               <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">

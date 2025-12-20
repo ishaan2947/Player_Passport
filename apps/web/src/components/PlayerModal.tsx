@@ -1,7 +1,10 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useEffect } from "react";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
 import type { Player, CreatePlayerInput } from "@/types/api";
+import { playerSchema, type PlayerFormData } from "@/lib/validation";
 
 interface PlayerModalProps {
   isOpen: boolean;
@@ -19,49 +22,67 @@ export function PlayerModal({
   player,
 }: PlayerModalProps) {
   const isEditMode = !!player;
-  const [formData, setFormData] = useState<CreatePlayerInput>({
-    name: "",
-    grade: "",
-    position: "",
-    height: "",
-    team: "",
-    goals: [],
+  const {
+    register,
+    handleSubmit,
+    formState: { errors },
+    reset,
+    watch,
+  } = useForm<PlayerFormData>({
+    resolver: zodResolver(playerSchema),
+    defaultValues: {
+      name: "",
+      grade: "",
+      position: "",
+      height: "",
+      team: "",
+      goals: [],
+      goalsInput: "",
+    },
   });
-  const [goalsInput, setGoalsInput] = useState("");
+
+  const goalsInput = watch("goalsInput");
 
   // Initialize form data when player changes (for edit mode)
   useEffect(() => {
-    if (player) {
-      setFormData({
-        name: player.name || "",
-        grade: player.grade || "",
-        position: player.position || "",
-        height: player.height || "",
-        team: player.team || "",
-        goals: player.goals || [],
-      });
-      setGoalsInput((player.goals || []).join(", "));
-    } else {
-      // Reset form for add mode
-      setFormData({
-        name: "",
-        grade: "",
-        position: "",
-        height: "",
-        team: "",
-        goals: [],
-      });
-      setGoalsInput("");
+    if (isOpen) {
+      if (player) {
+        reset({
+          name: player.name || "",
+          grade: player.grade || "",
+          position: player.position || "",
+          height: player.height || "",
+          team: player.team || "",
+          goals: player.goals || [],
+          goalsInput: (player.goals || []).join(", "),
+        });
+      } else {
+        reset({
+          name: "",
+          grade: "",
+          position: "",
+          height: "",
+          team: "",
+          goals: [],
+          goalsInput: "",
+        });
+      }
     }
-  }, [player, isOpen]);
+  }, [player, isOpen, reset]);
 
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!formData.name.trim()) {
-      return;
-    }
-    const goals = goalsInput.split(",").map((g) => g.trim()).filter(Boolean);
-    onSubmit({ ...formData, goals });
+  function onSubmitForm(data: PlayerFormData) {
+    const goals = data.goalsInput
+      ? data.goalsInput.split(",").map((g) => g.trim()).filter(Boolean)
+      : [];
+    const submitData: CreatePlayerInput = {
+      name: data.name,
+      grade: data.grade || undefined,
+      position: data.position || undefined,
+      height: data.height || undefined,
+      team: data.team || undefined,
+      goals,
+    };
+    onSubmit(submitData);
   }
 
   if (!isOpen) return null;
@@ -70,24 +91,34 @@ export function PlayerModal({
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
       <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-xl">
         <h2 className="mb-4 text-xl font-bold">{isEditMode ? "Edit Player" : "Add New Player"}</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
+        <form onSubmit={handleSubmit(onSubmitForm)} className="space-y-4">
           <div>
-            <label className="mb-1 block text-sm font-medium">Player Name *</label>
+            <label htmlFor="name" className="mb-1 block text-sm font-medium">
+              Player Name *
+            </label>
             <input
+              id="name"
               type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+              {...register("name")}
+              className={`w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
+                errors.name
+                  ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                  : "border-border focus:border-primary focus:ring-primary"
+              }`}
               placeholder="e.g., Marcus Johnson"
-              required
             />
+            {errors.name && (
+              <p className="mt-1 text-xs text-red-500">{errors.name.message}</p>
+            )}
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-1 block text-sm font-medium">Grade</label>
+              <label htmlFor="grade" className="mb-1 block text-sm font-medium">
+                Grade
+              </label>
               <select
-                value={formData.grade || ""}
-                onChange={(e) => setFormData({ ...formData, grade: e.target.value })}
+                id="grade"
+                {...register("grade")}
                 className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               >
                 <option value="">Select grade</option>
@@ -101,10 +132,12 @@ export function PlayerModal({
               </select>
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Position</label>
+              <label htmlFor="position" className="mb-1 block text-sm font-medium">
+                Position
+              </label>
               <select
-                value={formData.position || ""}
-                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
+                id="position"
+                {...register("position")}
                 className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               >
                 <option value="">Select position</option>
@@ -120,32 +153,38 @@ export function PlayerModal({
           </div>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <label className="mb-1 block text-sm font-medium">Height</label>
+              <label htmlFor="height" className="mb-1 block text-sm font-medium">
+                Height
+              </label>
               <input
+                id="height"
                 type="text"
-                value={formData.height || ""}
-                onChange={(e) => setFormData({ ...formData, height: e.target.value })}
+                {...register("height")}
                 className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 placeholder="e.g., 5'10&quot;"
               />
             </div>
             <div>
-              <label className="mb-1 block text-sm font-medium">Team Name</label>
+              <label htmlFor="team" className="mb-1 block text-sm font-medium">
+                Team Name
+              </label>
               <input
+                id="team"
                 type="text"
-                value={formData.team || ""}
-                onChange={(e) => setFormData({ ...formData, team: e.target.value })}
+                {...register("team")}
                 className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
                 placeholder="e.g., Central High"
               />
             </div>
           </div>
           <div>
-            <label className="mb-1 block text-sm font-medium">Goals (comma-separated)</label>
+            <label htmlFor="goalsInput" className="mb-1 block text-sm font-medium">
+              Goals (comma-separated)
+            </label>
             <input
+              id="goalsInput"
               type="text"
-              value={goalsInput}
-              onChange={(e) => setGoalsInput(e.target.value)}
+              {...register("goalsInput")}
               className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
               placeholder="e.g., Make varsity, Improve 3PT shooting"
             />
@@ -171,4 +210,3 @@ export function PlayerModal({
     </div>
   );
 }
-
