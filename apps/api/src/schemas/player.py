@@ -2,6 +2,8 @@
 Pydantic schemas for Player Passport.
 """
 
+from __future__ import annotations
+
 from datetime import date, datetime
 from typing import Literal
 from uuid import UUID
@@ -151,9 +153,10 @@ class PlayerResponse(BaseModel):
 
 
 class PlayerWithGamesResponse(PlayerResponse):
-    """Player profile with games included."""
+    """Player profile with games and reports included."""
 
     games: list[PlayerGameResponse] = []
+    reports: list["PlayerReportResponse"] = []  # Forward reference
 
 
 # ============================================================================

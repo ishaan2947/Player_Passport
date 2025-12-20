@@ -80,7 +80,7 @@ export async function createPlayer(input: CreatePlayerInput, token?: string | nu
 
 export async function updatePlayer(playerId: string, input: Partial<CreatePlayerInput>, token?: string | null): Promise<Player> {
   return fetchApi<Player>(`/players/${playerId}`, {
-    method: "PUT",
+    method: "PATCH",
     body: JSON.stringify(input),
   }, token);
 }
@@ -103,6 +103,13 @@ export async function addPlayerGame(playerId: string, input: CreatePlayerGameInp
   }, token);
 }
 
+export async function updatePlayerGame(playerId: string, gameId: string, input: Partial<CreatePlayerGameInput>, token?: string | null): Promise<PlayerGame> {
+  return fetchApi<PlayerGame>(`/players/${playerId}/games/${gameId}`, {
+    method: "PATCH",
+    body: JSON.stringify(input),
+  }, token);
+}
+
 export async function deletePlayerGame(playerId: string, gameId: string, token?: string | null): Promise<void> {
   await fetchApi<void>(`/players/${playerId}/games/${gameId}`, {
     method: "DELETE",
@@ -116,6 +123,12 @@ export async function getPlayerReports(playerId: string, token?: string | null):
 
 export async function getPlayerReportByPlayerId(playerId: string, reportId: string, token?: string | null): Promise<PlayerReport> {
   return fetchApi<PlayerReport>(`/players/${playerId}/reports/${reportId}`, {}, token);
+}
+
+export async function deletePlayerReport(playerId: string, reportId: string, token?: string | null): Promise<void> {
+  await fetchApi<void>(`/players/${playerId}/reports/${reportId}`, {
+    method: "DELETE",
+  }, token);
 }
 
 export async function generatePlayerReport(

@@ -1,271 +1,58 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, memo } from "react";
 import Link from "next/link";
 import { useParams, useRouter } from "next/navigation";
 import { toast } from "sonner";
 import {
   getPlayer,
+  updatePlayer,
   addPlayerGame,
+  updatePlayerGame,
+  deletePlayerGame,
   generatePlayerReport,
   getPlayerReportByPlayerId,
   getPlayerReports,
+  deletePlayerReport,
 } from "@/lib/api";
+import { PlayerModal } from "@/components/PlayerModal";
+import { GameModal } from "@/components/GameModal";
+import {
+  AlertDialog,
+  AlertDialogContent,
+  AlertDialogHeader,
+  AlertDialogTitle,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogCancel,
+  AlertDialogAction,
+} from "@/components/ui/alert-dialog";
 import type {
   PlayerWithGames,
   PlayerGame,
   PlayerReport,
   CreatePlayerGameInput,
+  CreatePlayerInput,
 } from "@/types/api";
 import { DashboardSkeleton } from "@/components/ui/skeleton";
 
-function AddGameModal({
-  isOpen,
-  onClose,
-  onSubmit,
-  isLoading,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (data: CreatePlayerGameInput) => void;
-  isLoading: boolean;
+
+const GameCard = memo(function GameCard({ 
+  game, 
+  onEdit, 
+  onDelete 
+}: { 
+  game: PlayerGame; 
+  onEdit: () => void;
+  onDelete: () => void;
 }) {
-  const [formData, setFormData] = useState({
-    game_label: "",
-    game_date: new Date().toISOString().split("T")[0] ?? "",
-    opponent: "",
-    minutes: undefined as number | undefined,
-    pts: 0,
-    reb: 0,
-    ast: 0,
-    stl: 0,
-    blk: 0,
-    tov: 0,
-    fgm: 0,
-    fga: 0,
-    tpm: 0,
-    tpa: 0,
-    ftm: 0,
-    fta: 0,
-    notes: "",
-  });
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!formData.opponent.trim()) {
-      toast.error("Opponent is required");
-      return;
-    }
-    const submitData: CreatePlayerGameInput = {
-      ...formData,
-      game_label: formData.game_label || undefined,
-      notes: formData.notes || undefined,
-    };
-    onSubmit(submitData);
-  }
-
-  function handleNumberChange(field: keyof CreatePlayerGameInput, value: string) {
-    const num = value === "" ? 0 : parseInt(value, 10);
-    if (!isNaN(num) && num >= 0) {
-      setFormData({ ...formData, [field]: num });
-    }
-  }
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center overflow-y-auto bg-background/80 backdrop-blur-sm p-4">
-      <div className="w-full max-w-2xl rounded-xl border border-border bg-card p-6 shadow-xl max-h-[90vh] overflow-y-auto">
-        <h2 className="mb-4 text-xl font-bold">Add Game Stats</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          {/* Game Info */}
-          <div className="grid grid-cols-1 gap-4 sm:grid-cols-3">
-            <div>
-              <label className="mb-1 block text-sm font-medium">Game Label *</label>
-              <input
-                type="text"
-                value={formData.game_label}
-                onChange={(e) => setFormData({ ...formData, game_label: e.target.value })}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                placeholder="e.g., Game 1"
-                required
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium">Date *</label>
-              <input
-                type="date"
-                value={formData.game_date}
-                onChange={(e) => setFormData({ ...formData, game_date: e.target.value })}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                required
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium">Opponent *</label>
-              <input
-                type="text"
-                value={formData.opponent}
-                onChange={(e) => setFormData({ ...formData, opponent: e.target.value })}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-                placeholder="e.g., Lincoln HS"
-                required
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="mb-1 block text-sm font-medium">Minutes Played</label>
-            <input
-              type="number"
-              value={formData.minutes ?? ""}
-              onChange={(e) => setFormData({ ...formData, minutes: e.target.value ? parseInt(e.target.value) : undefined })}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-              placeholder="e.g., 28"
-              min={0}
-            />
-          </div>
-
-          {/* Basic Stats */}
-          <div>
-            <p className="mb-2 text-sm font-medium text-muted-foreground">Basic Stats</p>
-            <div className="grid grid-cols-3 gap-3 sm:grid-cols-6">
-              {[
-                { key: "pts", label: "PTS" },
-                { key: "reb", label: "REB" },
-                { key: "ast", label: "AST" },
-                { key: "stl", label: "STL" },
-                { key: "blk", label: "BLK" },
-                { key: "tov", label: "TOV" },
-              ].map(({ key, label }) => (
-                <div key={key}>
-                  <label className="mb-1 block text-xs font-medium text-muted-foreground">{label}</label>
-                  <input
-                    type="number"
-                    value={formData[key as keyof CreatePlayerGameInput] ?? 0}
-                    onChange={(e) => handleNumberChange(key as keyof CreatePlayerGameInput, e.target.value)}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-center"
-                    min={0}
-                  />
-                </div>
-              ))}
-            </div>
-          </div>
-
-          {/* Shooting Stats */}
-          <div>
-            <p className="mb-2 text-sm font-medium text-muted-foreground">Shooting</p>
-            <div className="grid grid-cols-2 gap-4 sm:grid-cols-3">
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <label className="mb-1 block text-xs font-medium text-muted-foreground">FGM</label>
-                  <input
-                    type="number"
-                    value={formData.fgm ?? 0}
-                    onChange={(e) => handleNumberChange("fgm", e.target.value)}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-center"
-                    min={0}
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="mb-1 block text-xs font-medium text-muted-foreground">FGA</label>
-                  <input
-                    type="number"
-                    value={formData.fga ?? 0}
-                    onChange={(e) => handleNumberChange("fga", e.target.value)}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-center"
-                    min={0}
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <label className="mb-1 block text-xs font-medium text-muted-foreground">3PM</label>
-                  <input
-                    type="number"
-                    value={formData.tpm ?? 0}
-                    onChange={(e) => handleNumberChange("tpm", e.target.value)}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-center"
-                    min={0}
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="mb-1 block text-xs font-medium text-muted-foreground">3PA</label>
-                  <input
-                    type="number"
-                    value={formData.tpa ?? 0}
-                    onChange={(e) => handleNumberChange("tpa", e.target.value)}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-center"
-                    min={0}
-                  />
-                </div>
-              </div>
-              <div className="flex gap-2">
-                <div className="flex-1">
-                  <label className="mb-1 block text-xs font-medium text-muted-foreground">FTM</label>
-                  <input
-                    type="number"
-                    value={formData.ftm ?? 0}
-                    onChange={(e) => handleNumberChange("ftm", e.target.value)}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-center"
-                    min={0}
-                  />
-                </div>
-                <div className="flex-1">
-                  <label className="mb-1 block text-xs font-medium text-muted-foreground">FTA</label>
-                  <input
-                    type="number"
-                    value={formData.fta ?? 0}
-                    onChange={(e) => handleNumberChange("fta", e.target.value)}
-                    className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-center"
-                    min={0}
-                  />
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* Notes */}
-          <div>
-            <label className="mb-1 block text-sm font-medium">Game Notes</label>
-            <textarea
-              value={formData.notes || ""}
-              onChange={(e) => setFormData({ ...formData, notes: e.target.value })}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm"
-              placeholder="Any observations, matchups, playing time context..."
-              rows={3}
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-lg border border-border px-4 py-2 text-sm font-medium hover:bg-secondary"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground hover:bg-primary/90 disabled:opacity-50"
-            >
-              {isLoading ? "Adding..." : "Add Game"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
-
-function GameCard({ game }: { game: PlayerGame }) {
   const fgPct = game.fga > 0 ? ((game.fgm / game.fga) * 100).toFixed(1) : "-";
   const tpPct = game.tpa > 0 ? ((game.tpm / game.tpa) * 100).toFixed(1) : "-";
   const ftPct = game.fta > 0 ? ((game.ftm / game.fta) * 100).toFixed(1) : "-";
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
 
   return (
-    <div className="rounded-lg border border-border bg-card p-4">
+    <div className="group relative rounded-lg border border-border bg-card p-4">
       <div className="mb-3 flex items-center justify-between">
         <div>
           <h4 className="font-semibold">{game.game_label || `vs ${game.opponent}`}</h4>
@@ -273,11 +60,56 @@ function GameCard({ game }: { game: PlayerGame }) {
             vs {game.opponent} • {new Date(game.game_date).toLocaleDateString()}
           </p>
         </div>
-        {game.minutes > 0 && (
-          <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium">
-            {game.minutes} MIN
-          </span>
-        )}
+        <div className="flex items-center gap-2">
+          {game.minutes > 0 && (
+            <span className="rounded-full bg-secondary px-2.5 py-0.5 text-xs font-medium">
+              {game.minutes} MIN
+            </span>
+          )}
+          <div className="flex gap-1 opacity-0 transition-opacity group-hover:opacity-100">
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                onEdit();
+              }}
+              className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-secondary hover:text-foreground"
+              title="Edit game"
+            >
+              <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+              </svg>
+            </button>
+            {showDeleteConfirm ? (
+              <AlertDialog open={showDeleteConfirm} onOpenChange={setShowDeleteConfirm}>
+                <AlertDialogContent>
+                  <AlertDialogHeader>
+                    <AlertDialogTitle>Delete Game?</AlertDialogTitle>
+                    <AlertDialogDescription>
+                      Are you sure you want to delete this game? This action cannot be undone.
+                    </AlertDialogDescription>
+                  </AlertDialogHeader>
+                  <AlertDialogFooter>
+                    <AlertDialogCancel onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDeleteConfirm(false); }}>Cancel</AlertDialogCancel>
+                    <AlertDialogAction onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(); setShowDeleteConfirm(false); }}>Delete</AlertDialogAction>
+                  </AlertDialogFooter>
+                </AlertDialogContent>
+              </AlertDialog>
+            ) : (
+              <button
+                onClick={(e) => {
+                  e.stopPropagation();
+                  setShowDeleteConfirm(true);
+                }}
+                className="rounded-lg p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive"
+                title="Delete game"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+                </svg>
+              </button>
+            )}
+          </div>
+        </div>
       </div>
       <div className="grid grid-cols-6 gap-2 text-center">
         <div>
@@ -317,9 +149,18 @@ function GameCard({ game }: { game: PlayerGame }) {
       )}
     </div>
   );
-}
+});
 
-function ReportCard({ report, playerId }: { report: PlayerReport; playerId: string }) {
+const ReportCard = memo(function ReportCard({ 
+  report, 
+  playerId, 
+  onDelete 
+}: { 
+  report: PlayerReport; 
+  playerId: string;
+  onDelete: (reportId: string) => void;
+}) {
+  const [showDeleteConfirm, setShowDeleteConfirm] = useState(false);
   const statusColors = {
     pending: "bg-yellow-500/20 text-yellow-500",
     generating: "bg-blue-500/20 text-blue-500",
@@ -328,38 +169,69 @@ function ReportCard({ report, playerId }: { report: PlayerReport; playerId: stri
   };
 
   return (
-    <Link
-      href={`/dashboard/players/${playerId}/reports/${report.id}`}
-      className="block rounded-lg border border-border bg-card p-4 transition-all hover:border-orange-500/50 hover:shadow-lg"
-    >
-      <div className="flex items-center justify-between">
-        <div>
-          <p className="font-semibold">Development Report</p>
-          <p className="text-sm text-muted-foreground">
-            {new Date(report.created_at).toLocaleDateString("en-US", {
-              month: "short",
-              day: "numeric",
-              year: "numeric",
-              hour: "2-digit",
-              minute: "2-digit",
-            })}
-          </p>
+    <div className="group relative rounded-lg border border-border bg-card p-4 transition-all hover:border-orange-500/50 hover:shadow-lg">
+      <Link
+        href={`/dashboard/players/${playerId}/reports/${report.id}`}
+        className="block"
+      >
+        <div className="flex items-center justify-between">
+          <div>
+            <p className="font-semibold">Development Report</p>
+            <p className="text-sm text-muted-foreground">
+              {new Date(report.created_at).toLocaleDateString("en-US", {
+                month: "short",
+                day: "numeric",
+                year: "numeric",
+                hour: "2-digit",
+                minute: "2-digit",
+              })}
+            </p>
+          </div>
+          <span className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${statusColors[report.status]}`}>
+            {report.status}
+          </span>
         </div>
-        <span className={`rounded-full px-3 py-1 text-xs font-medium capitalize ${statusColors[report.status]}`}>
-          {report.status}
-        </span>
+        {report.status === "completed" && report.report_json && (
+          <div className="mt-3 text-sm text-muted-foreground">
+            <p className="line-clamp-2">{report.report_json.growth_summary}</p>
+          </div>
+        )}
+        {report.status === "failed" && report.error_text && (
+          <p className="mt-2 text-sm text-red-400">{report.error_text}</p>
+        )}
+      </Link>
+      {/* Delete button */}
+      <div className="absolute right-2 top-2 z-20">
+        {showDeleteConfirm ? (
+          <div className="flex items-center gap-1 rounded-lg bg-card border border-destructive/30 p-1 shadow-lg">
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); onDelete(report.id); }}
+              className="rounded px-2 py-1 text-xs font-medium text-destructive hover:bg-destructive/20"
+            >
+              Delete
+            </button>
+            <button
+              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDeleteConfirm(false); }}
+              className="rounded px-2 py-1 text-xs font-medium text-muted-foreground hover:bg-secondary"
+            >
+              Cancel
+            </button>
+          </div>
+        ) : (
+          <button
+            onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowDeleteConfirm(true); }}
+            className="rounded-lg p-1.5 text-muted-foreground opacity-0 transition-all hover:bg-destructive/10 hover:text-destructive group-hover:opacity-100"
+            title="Delete report"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16" />
+            </svg>
+          </button>
+        )}
       </div>
-      {report.status === "completed" && report.report_json && (
-        <div className="mt-3 text-sm text-muted-foreground">
-          <p className="line-clamp-2">{report.report_json.growth_summary}</p>
-        </div>
-      )}
-      {report.status === "failed" && report.error_text && (
-        <p className="mt-2 text-sm text-red-400">{report.error_text}</p>
-      )}
-    </Link>
+    </div>
   );
-}
+});
 
 export default function PlayerDetailPage() {
   const params = useParams();
@@ -369,9 +241,13 @@ export default function PlayerDetailPage() {
   const [player, setPlayer] = useState<PlayerWithGames | null>(null);
   const [reports, setReports] = useState<PlayerReport[]>([]);
   const [loading, setLoading] = useState(true);
-  const [showAddGameModal, setShowAddGameModal] = useState(false);
+  const [showGameModal, setShowGameModal] = useState(false);
+  const [editingGame, setEditingGame] = useState<PlayerGame | null>(null);
   const [isAddingGame, setIsAddingGame] = useState(false);
+  const [isUpdatingGame, setIsUpdatingGame] = useState(false);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [showEditPlayerModal, setShowEditPlayerModal] = useState(false);
+  const [isUpdatingPlayer, setIsUpdatingPlayer] = useState(false);
 
   const loadPlayer = useCallback(async () => {
     try {
@@ -394,18 +270,90 @@ export default function PlayerDetailPage() {
     loadPlayer();
   }, [loadPlayer]);
 
-  async function handleAddGame(data: CreatePlayerGameInput) {
-    setIsAddingGame(true);
+  async function handleUpdatePlayer(data: CreatePlayerInput) {
+    if (!player) return;
+    setIsUpdatingPlayer(true);
     try {
-      const newGame = await addPlayerGame(playerId, data);
-      setPlayer((prev) => prev ? { ...prev, games: [...prev.games, newGame] } : prev);
-      setShowAddGameModal(false);
-      toast.success("Game added!", { description: `${data.game_label} has been recorded.` });
+      const updatedPlayer = await updatePlayer(playerId, data);
+      setPlayer({ ...updatedPlayer, games: player.games });
+      setShowEditPlayerModal(false);
+      toast.success("Player updated!", { description: `${updatedPlayer.name} has been updated.` });
     } catch (e) {
-      const message = e instanceof Error ? e.message : "Failed to add game";
-      toast.error("Failed to add game", { description: message });
+      const message = e instanceof Error ? e.message : "Failed to update player";
+      toast.error("Failed to update player", { description: message });
     } finally {
-      setIsAddingGame(false);
+      setIsUpdatingPlayer(false);
+    }
+  }
+
+  async function handleGameSubmit(data: CreatePlayerGameInput) {
+    if (editingGame) {
+      // Update existing game
+      setIsUpdatingGame(true);
+      try {
+        const updatedGame = await updatePlayerGame(playerId, editingGame.id, data);
+        setPlayer((prev) => prev ? { 
+          ...prev, 
+          games: prev.games.map(g => g.id === editingGame.id ? updatedGame : g)
+        } : prev);
+        setShowGameModal(false);
+        setEditingGame(null);
+        toast.success("Game updated!", { description: `${data.game_label} has been updated.` });
+      } catch (e) {
+        const message = e instanceof Error ? e.message : "Failed to update game";
+        toast.error("Failed to update game", { description: message });
+      } finally {
+        setIsUpdatingGame(false);
+      }
+    } else {
+      // Add new game
+      setIsAddingGame(true);
+      try {
+        const newGame = await addPlayerGame(playerId, data);
+        setPlayer((prev) => prev ? { ...prev, games: [...prev.games, newGame] } : prev);
+        setShowGameModal(false);
+        toast.success("Game added!", { description: `${data.game_label} has been recorded.` });
+      } catch (e) {
+        const message = e instanceof Error ? e.message : "Failed to add game";
+        toast.error("Failed to add game", { description: message });
+      } finally {
+        setIsAddingGame(false);
+      }
+    }
+  }
+
+  async function handleDeleteGame(gameId: string) {
+    try {
+      await deletePlayerGame(playerId, gameId);
+      setPlayer((prev) => prev ? { 
+        ...prev, 
+        games: prev.games.filter(g => g.id !== gameId)
+      } : prev);
+      toast.success("Game deleted");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to delete game";
+      toast.error("Failed to delete game", { description: message });
+    }
+  }
+
+  function handleEditGame(game: PlayerGame) {
+    setEditingGame(game);
+    setShowGameModal(true);
+  }
+
+  function handleAddGameClick() {
+    setEditingGame(null);
+    setShowGameModal(true);
+  }
+
+  async function handleDeleteReport(reportId: string) {
+    try {
+      await deletePlayerReport(playerId, reportId);
+      setReports(reports.filter((r) => r.id !== reportId));
+      toast.success("Report deleted");
+    } catch (e) {
+      const message = e instanceof Error ? e.message : "Failed to delete report";
+      toast.error("Failed to delete report", { description: message });
     }
   }
 
@@ -460,12 +408,11 @@ export default function PlayerDetailPage() {
   if (loading) return <DashboardSkeleton />;
   if (!player) return null;
 
-  // Calculate averages
+  // Calculate averages (aligned with dashboard PlayerCard stats)
   const games = player.games;
   const gamesCount = games.length;
-  const avgPts = gamesCount > 0 ? (games.reduce((s, g) => s + g.pts, 0) / gamesCount).toFixed(1) : "-";
-  const avgReb = gamesCount > 0 ? (games.reduce((s, g) => s + g.reb, 0) / gamesCount).toFixed(1) : "-";
-  const avgAst = gamesCount > 0 ? (games.reduce((s, g) => s + g.ast, 0) / gamesCount).toFixed(1) : "-";
+  const reportsCount = reports.length;
+  const avgPts = gamesCount > 0 ? (games.reduce((s, g) => s + g.pts, 0) / gamesCount).toFixed(1) : "0.0";
 
   return (
     <div className="p-4 md:p-8">
@@ -510,9 +457,18 @@ export default function PlayerDetailPage() {
               </div>
             )}
           </div>
+          <button
+            onClick={() => setShowEditPlayerModal(true)}
+            className="ml-auto rounded-lg border border-border px-3 py-2 text-sm font-medium hover:bg-secondary transition-colors"
+            title="Edit player"
+          >
+            <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z" />
+            </svg>
+          </button>
         </div>
 
-        {/* Stats Summary */}
+        {/* Stats Summary - Aligned with dashboard PlayerCard */}
         {gamesCount > 0 && (
           <div className="flex gap-6 rounded-xl border border-border bg-card p-4">
             <div className="text-center">
@@ -520,16 +476,12 @@ export default function PlayerDetailPage() {
               <p className="text-xs text-muted-foreground">PPG</p>
             </div>
             <div className="text-center">
-              <p className="text-2xl font-bold">{avgReb}</p>
-              <p className="text-xs text-muted-foreground">RPG</p>
-            </div>
-            <div className="text-center">
-              <p className="text-2xl font-bold">{avgAst}</p>
-              <p className="text-xs text-muted-foreground">APG</p>
-            </div>
-            <div className="text-center">
               <p className="text-2xl font-bold">{gamesCount}</p>
               <p className="text-xs text-muted-foreground">Games</p>
+            </div>
+            <div className="text-center">
+              <p className="text-2xl font-bold">{reportsCount}</p>
+              <p className="text-xs text-muted-foreground">Reports</p>
             </div>
           </div>
         )}
@@ -571,7 +523,7 @@ export default function PlayerDetailPage() {
                 Add game stats to start tracking development
               </p>
               <button
-                onClick={() => setShowAddGameModal(true)}
+                onClick={handleAddGameClick}
                 className="mt-4 inline-flex items-center gap-2 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground"
               >
                 Add First Game
@@ -583,7 +535,12 @@ export default function PlayerDetailPage() {
                 .slice()
                 .sort((a, b) => new Date(b.game_date).getTime() - new Date(a.game_date).getTime())
                 .map((game) => (
-                  <GameCard key={game.id} game={game} />
+                  <GameCard 
+                    key={game.id} 
+                    game={game}
+                    onEdit={() => handleEditGame(game)}
+                    onDelete={() => handleDeleteGame(game.id)}
+                  />
                 ))}
             </div>
           )}
@@ -627,7 +584,7 @@ export default function PlayerDetailPage() {
                 .slice()
                 .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())
                 .map((report) => (
-                  <ReportCard key={report.id} report={report} playerId={playerId} />
+                  <ReportCard key={report.id} report={report} playerId={playerId} onDelete={handleDeleteReport} />
                 ))}
             </div>
           ) : (
@@ -638,12 +595,25 @@ export default function PlayerDetailPage() {
         </div>
       </div>
 
-      {/* Add Game Modal */}
-      <AddGameModal
-        isOpen={showAddGameModal}
-        onClose={() => setShowAddGameModal(false)}
-        onSubmit={handleAddGame}
-        isLoading={isAddingGame}
+      {/* Game Modal (Add/Edit) */}
+      <GameModal
+        isOpen={showGameModal}
+        onClose={() => {
+          setShowGameModal(false);
+          setEditingGame(null);
+        }}
+        onSubmit={handleGameSubmit}
+        isLoading={isAddingGame || isUpdatingGame}
+        game={editingGame}
+      />
+
+      {/* Edit Player Modal */}
+      <PlayerModal
+        isOpen={showEditPlayerModal}
+        onClose={() => setShowEditPlayerModal(false)}
+        onSubmit={handleUpdatePlayer}
+        isLoading={isUpdatingPlayer}
+        player={player}
       />
     </div>
   );

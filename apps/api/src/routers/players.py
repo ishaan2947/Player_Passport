@@ -62,14 +62,15 @@ async def create_player(
     return player
 
 
-@router.get("", response_model=list[PlayerResponse])
+@router.get("", response_model=list[PlayerWithGamesResponse])
 async def list_players(
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> list[Player]:
-    """List all players for the current user."""
+    """List all players for the current user with games and reports."""
     result = db.execute(
         select(Player)
+        .options(selectinload(Player.games), selectinload(Player.reports))
         .where(Player.user_id == current_user.id)
         .order_by(Player.created_at.desc())
     )
@@ -409,6 +410,36 @@ async def get_player_report(
         raise HTTPException(status_code=404, detail="Report not found")
 
     return report
+
+
+@router.delete("/{player_id}/reports/{report_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_player_report(
+    player_id: UUID,
+    report_id: UUID,
+    current_user: User = Depends(get_current_user),
+    db: Session = Depends(get_db),
+) -> None:
+    """Delete a player's report."""
+    # Verify player exists and belongs to user
+    result = db.execute(
+        select(Player).where(Player.id == player_id, Player.user_id == current_user.id)
+    )
+    player = result.scalar_one_or_none()
+    if not player:
+        raise HTTPException(status_code=404, detail="Player not found")
+
+    # Get report
+    result = db.execute(
+        select(PlayerReport).where(
+            PlayerReport.id == report_id, PlayerReport.player_id == player_id
+        )
+    )
+    report = result.scalar_one_or_none()
+    if not report:
+        raise HTTPException(status_code=404, detail="Report not found")
+
+    db.delete(report)
+    db.commit()
 
 
 # ============================================================================

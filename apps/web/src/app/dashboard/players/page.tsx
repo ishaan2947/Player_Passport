@@ -6,145 +6,7 @@ import { toast } from "sonner";
 import { getPlayers, createPlayer, deletePlayer, seedDemoPlayers } from "@/lib/api";
 import type { Player, CreatePlayerInput } from "@/types/api";
 import { DashboardSkeleton } from "@/components/ui/skeleton";
-
-function AddPlayerModal({
-  isOpen,
-  onClose,
-  onSubmit,
-  isLoading,
-}: {
-  isOpen: boolean;
-  onClose: () => void;
-  onSubmit: (data: CreatePlayerInput) => void;
-  isLoading: boolean;
-}) {
-  const [formData, setFormData] = useState<CreatePlayerInput>({
-    name: "",
-    grade: "",
-    position: "",
-    height: "",
-    team: "",
-    goals: [],
-  });
-  const [goalsInput, setGoalsInput] = useState("");
-
-  function handleSubmit(e: React.FormEvent) {
-    e.preventDefault();
-    if (!formData.name.trim()) {
-      toast.error("Player name is required");
-      return;
-    }
-    const goals = goalsInput.split(",").map((g) => g.trim()).filter(Boolean);
-    onSubmit({ ...formData, goals });
-  }
-
-  if (!isOpen) return null;
-
-  return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-background/80 backdrop-blur-sm">
-      <div className="w-full max-w-md rounded-xl border border-border bg-card p-6 shadow-xl">
-        <h2 className="mb-4 text-xl font-bold">Add New Player</h2>
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="mb-1 block text-sm font-medium">Player Name *</label>
-            <input
-              type="text"
-              value={formData.name}
-              onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-              placeholder="e.g., Marcus Johnson"
-              required
-            />
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium">Grade</label>
-              <select
-                value={formData.grade || ""}
-                onChange={(e) => setFormData({ ...formData, grade: e.target.value })}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-              >
-                <option value="">Select grade</option>
-                <option value="6th">6th Grade</option>
-                <option value="7th">7th Grade</option>
-                <option value="8th">8th Grade</option>
-                <option value="Freshman">Freshman</option>
-                <option value="Sophomore">Sophomore</option>
-                <option value="Junior">Junior</option>
-                <option value="Senior">Senior</option>
-              </select>
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium">Position</label>
-              <select
-                value={formData.position || ""}
-                onChange={(e) => setFormData({ ...formData, position: e.target.value })}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-              >
-                <option value="">Select position</option>
-                <option value="PG">Point Guard (PG)</option>
-                <option value="SG">Shooting Guard (SG)</option>
-                <option value="SF">Small Forward (SF)</option>
-                <option value="PF">Power Forward (PF)</option>
-                <option value="C">Center (C)</option>
-                <option value="G">Guard (G)</option>
-                <option value="F">Forward (F)</option>
-              </select>
-            </div>
-          </div>
-          <div className="grid grid-cols-2 gap-4">
-            <div>
-              <label className="mb-1 block text-sm font-medium">Height</label>
-              <input
-                type="text"
-                value={formData.height || ""}
-                onChange={(e) => setFormData({ ...formData, height: e.target.value })}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                placeholder="e.g., 5'10&quot;"
-              />
-            </div>
-            <div>
-              <label className="mb-1 block text-sm font-medium">Team Name</label>
-              <input
-                type="text"
-                value={formData.team || ""}
-                onChange={(e) => setFormData({ ...formData, team: e.target.value })}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-                placeholder="e.g., Central High"
-              />
-            </div>
-          </div>
-          <div>
-            <label className="mb-1 block text-sm font-medium">Goals (comma-separated)</label>
-            <input
-              type="text"
-              value={goalsInput}
-              onChange={(e) => setGoalsInput(e.target.value)}
-              className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
-              placeholder="e.g., Make varsity, Improve 3PT shooting"
-            />
-          </div>
-          <div className="flex justify-end gap-3 pt-4">
-            <button
-              type="button"
-              onClick={onClose}
-              className="rounded-lg border border-border px-4 py-2 text-sm font-medium transition-colors hover:bg-secondary"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              disabled={isLoading}
-              className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/90 disabled:opacity-50"
-            >
-              {isLoading ? "Creating..." : "Create Player"}
-            </button>
-          </div>
-        </form>
-      </div>
-    </div>
-  );
-}
+import { PlayerModal } from "@/components/PlayerModal";
 
 function EmptyPlayersState({ 
   onAddPlayer, 
@@ -306,6 +168,9 @@ export default function PlayersPage() {
   const [showAddModal, setShowAddModal] = useState(false);
   const [isCreating, setIsCreating] = useState(false);
   const [isLoadingDemo, setIsLoadingDemo] = useState(false);
+  const [searchQuery, setSearchQuery] = useState("");
+  const [filterPosition, setFilterPosition] = useState<string>("");
+  const [filterGrade, setFilterGrade] = useState<string>("");
 
   const loadPlayers = useCallback(async () => {
     try {
@@ -375,6 +240,21 @@ export default function PlayersPage() {
 
   if (loading) return <DashboardSkeleton />;
 
+  // Filter players
+  const filteredPlayers = players.filter((player) => {
+    const matchesSearch = !searchQuery || 
+      player.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      player.team?.toLowerCase().includes(searchQuery.toLowerCase()) ||
+      player.goals?.some(g => g.toLowerCase().includes(searchQuery.toLowerCase()));
+    const matchesPosition = !filterPosition || player.position === filterPosition;
+    const matchesGrade = !filterGrade || player.grade === filterGrade;
+    return matchesSearch && matchesPosition && matchesGrade;
+  });
+
+  // Get unique values for filters
+  const positions = Array.from(new Set(players.map(p => p.position).filter(Boolean))) as string[];
+  const grades = Array.from(new Set(players.map(p => p.grade).filter(Boolean))) as string[];
+
   return (
     <div className="p-4 md:p-8">
       {/* Header */}
@@ -398,6 +278,84 @@ export default function PlayersPage() {
         )}
       </div>
 
+      {/* Search and Filters */}
+      {players.length > 0 && (
+        <div className="mb-6 space-y-4">
+          {/* Search Bar */}
+          <div className="relative">
+            <svg
+              className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground"
+              fill="none"
+              viewBox="0 0 24 24"
+              stroke="currentColor"
+            >
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+            </svg>
+            <input
+              type="text"
+              placeholder="Search by name, team, or goals..."
+              value={searchQuery}
+              onChange={(e) => setSearchQuery(e.target.value)}
+              className="w-full rounded-lg border border-border bg-background pl-10 pr-4 py-2.5 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            />
+            {searchQuery && (
+              <button
+                onClick={() => setSearchQuery("")}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                aria-label="Clear search"
+              >
+                <svg className="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                  <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M6 18L18 6M6 6l12 12" />
+                </svg>
+              </button>
+            )}
+          </div>
+
+          {/* Filters */}
+          <div className="flex flex-wrap gap-3">
+            <select
+              value={filterPosition}
+              onChange={(e) => setFilterPosition(e.target.value)}
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            >
+              <option value="">All Positions</option>
+              {positions.sort().map((pos) => (
+                <option key={pos} value={pos}>{pos}</option>
+              ))}
+            </select>
+            <select
+              value={filterGrade}
+              onChange={(e) => setFilterGrade(e.target.value)}
+              className="rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+            >
+              <option value="">All Grades</option>
+              {grades.sort().map((grade) => (
+                <option key={grade} value={grade}>{grade}</option>
+              ))}
+            </select>
+            {(searchQuery || filterPosition || filterGrade) && (
+              <button
+                onClick={() => {
+                  setSearchQuery("");
+                  setFilterPosition("");
+                  setFilterGrade("");
+                }}
+                className="rounded-lg border border-border bg-background px-3 py-2 text-sm text-muted-foreground hover:bg-secondary hover:text-foreground"
+              >
+                Clear Filters
+              </button>
+            )}
+          </div>
+
+          {/* Results count */}
+          {filteredPlayers.length !== players.length && (
+            <p className="text-sm text-muted-foreground">
+              Showing {filteredPlayers.length} of {players.length} players
+            </p>
+          )}
+        </div>
+      )}
+
       {/* Players Grid */}
       {players.length === 0 ? (
         <EmptyPlayersState 
@@ -405,16 +363,41 @@ export default function PlayersPage() {
           onLoadDemo={handleLoadDemoPlayers}
           isLoadingDemo={isLoadingDemo}
         />
+      ) : filteredPlayers.length === 0 ? (
+        <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border bg-card/50 py-12 text-center">
+          <svg
+            className="mx-auto h-12 w-12 text-muted-foreground"
+            fill="none"
+            viewBox="0 0 24 24"
+            stroke="currentColor"
+          >
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0z" />
+          </svg>
+          <h3 className="mt-4 font-semibold">No players found</h3>
+          <p className="mt-1 text-sm text-muted-foreground">
+            Try adjusting your search or filters
+          </p>
+          <button
+            onClick={() => {
+              setSearchQuery("");
+              setFilterPosition("");
+              setFilterGrade("");
+            }}
+            className="mt-4 rounded-lg border border-border bg-background px-4 py-2 text-sm font-medium hover:bg-secondary"
+          >
+            Clear All Filters
+          </button>
+        </div>
       ) : (
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-          {players.map((player) => (
+          {filteredPlayers.map((player) => (
             <PlayerCard key={player.id} player={player} onDelete={handleDeletePlayer} />
           ))}
         </div>
       )}
 
       {/* Add Player Modal */}
-      <AddPlayerModal
+      <PlayerModal
         isOpen={showAddModal}
         onClose={() => setShowAddModal(false)}
         onSubmit={handleCreatePlayer}

@@ -23,7 +23,7 @@ SCHEMA (Return exactly these top-level keys):
     "report_window": string,
     "confidence_level": "low" | "medium" | "high",
     "confidence_reason": string,
-    "disclaimer": string (must include language about no guarantees)
+    "disclaimer": string (MUST include the word "guarantee" or "promise" explicitly stating no guarantees/promises, e.g., "This report does not guarantee future performance or recruiting outcomes.")
   },
   "growth_summary": string (100-2000 chars, no medical advice, no guarantees),
   "development_report": {
@@ -60,7 +60,7 @@ SCHEMA (Return exactly these top-level keys):
       "team": string,
       "goals": [string]
     },
-    "top_stats_snapshot": [string, string, string, string] (3-5 items),
+    "top_stats_snapshot": [string, string, string] (3-5 items, each a separate stat string like "12.5 PPG", "4.0 APG", "2.0 SPG"),
     "strengths_short": [string, string] (2-4 items),
     "development_areas_short": [string, string] (2-4 items),
     "coach_notes_summary": string,
@@ -122,6 +122,12 @@ TASK:
    - HIGH if ≥5 games with minutes + attempts present and notes/context available
    - MEDIUM if 3–4 games with minutes present but limited attempts/notes
    - LOW if missing minutes OR attempts mostly missing OR only 3 games with sparse info
+3a) Create meta section:
+   - player_name: from input
+   - report_window: date range string (e.g., "Dec 1-15, 2024")
+   - confidence_level: from step 3
+   - confidence_reason: brief explanation (e.g., "Based on 5 games with complete stats")
+   - disclaimer: MUST include the word "guarantee" or "promise" explicitly (e.g., "This report is based on limited data and does not guarantee future performance or recruiting outcomes.")
 4) Create a parent-friendly growth_summary paragraph:
    - Must reference trends across the games (up/down/consistent) using the provided stats only.
    - No exaggeration. Use cautious phrasing like "appears," "trend suggests."
@@ -150,7 +156,7 @@ TASK:
    - NO guarantee language (no "guaranteed", "definitely", "will get")
 9) player_profile:
    - headline: crisp and positive, no recruiting guarantees (ex: "Playmaking guard focused on decision-making and efficiency")
-   - top_stats_snapshot: 3–4 short stat strings (ex: "12.5 PPG • 4.0 APG • 2.0 SPG • 28 MPG")
+   - top_stats_snapshot: 3–5 separate stat strings as an array (NOT one string with bullets). Each string should be a single stat like "12.5 PPG", "4.0 APG", "2.0 SPG", "28 MPG". Example: ["12.5 PPG", "4.0 APG", "2.0 SPG", "28 MPG"]
    - coach_notes_summary: summarize coach/parent notes in 1 sentence; if none, say "No coach notes provided yet."
    - highlight_summary_placeholder: mention future feature without claiming video analysis now (ex: "Highlights: Coming soon — add clips to showcase strengths.")
 10) structured_data:

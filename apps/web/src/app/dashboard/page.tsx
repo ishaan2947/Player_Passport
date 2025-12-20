@@ -1,13 +1,13 @@
 "use client";
 
-import { useEffect, useState, useCallback } from "react";
+import { useEffect, useState, useCallback, useMemo, memo } from "react";
 import Link from "next/link";
 import { toast } from "sonner";
 import { getPlayers } from "@/lib/api";
 import type { PlayerWithGames } from "@/types/api";
 import { DashboardSkeleton } from "@/components/ui/skeleton";
 
-function StatCard({
+const StatCard = memo(function StatCard({
   title,
   value,
   subtitle,
@@ -45,9 +45,9 @@ function StatCard({
       </div>
     </div>
   );
-}
+});
 
-function PlayerCard({ player }: { player: PlayerWithGames }) {
+const PlayerCard = memo(function PlayerCard({ player }: { player: PlayerWithGames }) {
   const gamesCount = player.games?.length || 0;
   const reportsCount = player.reports?.length || 0;
   const avgPts = gamesCount > 0
@@ -95,9 +95,9 @@ function PlayerCard({ player }: { player: PlayerWithGames }) {
       </div>
     </Link>
   );
-}
+});
 
-function EmptyState() {
+const EmptyState = memo(function EmptyState() {
   return (
     <div className="flex flex-col items-center justify-center rounded-2xl border-2 border-dashed border-border bg-card/50 p-12 text-center">
       <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-gradient-to-br from-orange-500/20 to-amber-500/20">
@@ -120,7 +120,7 @@ function EmptyState() {
       </Link>
     </div>
   );
-}
+});
 
 export default function DashboardPage() {
   const [players, setPlayers] = useState<PlayerWithGames[]>([]);
@@ -142,13 +142,16 @@ export default function DashboardPage() {
     loadData();
   }, [loadData]);
 
-  if (loading) return <DashboardSkeleton />;
+  // Calculate stats with useMemo for performance (must be before early return)
+  const stats = useMemo(() => {
+    const totalPlayers = players.length;
+    const totalGames = players.reduce((sum, p) => sum + (p.games?.length || 0), 0);
+    const totalReports = players.reduce((sum, p) => sum + (p.reports?.length || 0), 0);
+    const avgGamesPerPlayer = totalPlayers > 0 ? (totalGames / totalPlayers).toFixed(1) : "0";
+    return { totalPlayers, totalGames, totalReports, avgGamesPerPlayer };
+  }, [players]);
 
-  // Calculate stats
-  const totalPlayers = players.length;
-  const totalGames = players.reduce((sum, p) => sum + (p.games?.length || 0), 0);
-  const totalReports = players.reduce((sum, p) => sum + (p.reports?.length || 0), 0);
-  const avgGamesPerPlayer = totalPlayers > 0 ? (totalGames / totalPlayers).toFixed(1) : "0";
+  if (loading) return <DashboardSkeleton />;
 
   return (
     <div className="p-4 md:p-8">
@@ -168,7 +171,7 @@ export default function DashboardPage() {
           <div className="mb-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
             <StatCard
               title="Total Players"
-              value={totalPlayers}
+              value={stats.totalPlayers}
               subtitle="Player profiles created"
               icon={
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -179,8 +182,8 @@ export default function DashboardPage() {
             />
             <StatCard
               title="Total Games"
-              value={totalGames}
-              subtitle={`${avgGamesPerPlayer} avg per player`}
+              value={stats.totalGames}
+              subtitle={`${stats.avgGamesPerPlayer} avg per player`}
               icon={
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                   <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
@@ -190,7 +193,7 @@ export default function DashboardPage() {
             />
             <StatCard
               title="Reports Generated"
-              value={totalReports}
+              value={stats.totalReports}
               subtitle="AI development reports"
               icon={
                 <svg className="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -218,7 +221,7 @@ export default function DashboardPage() {
               <div>
                 <h2 className="text-lg font-semibold">Your Players</h2>
                 <p className="text-sm text-muted-foreground">
-                  {totalPlayers} player{totalPlayers !== 1 ? "s" : ""} • {totalGames} game{totalGames !== 1 ? "s" : ""} logged
+                  {stats.totalPlayers} player{stats.totalPlayers !== 1 ? "s" : ""} • {stats.totalGames} game{stats.totalGames !== 1 ? "s" : ""} logged
                 </p>
               </div>
               <Link
