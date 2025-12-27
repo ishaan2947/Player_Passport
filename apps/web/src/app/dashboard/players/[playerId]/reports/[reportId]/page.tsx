@@ -172,6 +172,16 @@ export default function PlayerReportPage() {
             <span className="rounded-full bg-secondary px-3 py-1 text-xs font-medium">
               {meta.report_window}
             </span>
+            <button
+              onClick={() => window.print()}
+              className="no-print inline-flex items-center gap-2 rounded-full border border-border bg-secondary px-4 py-1.5 text-xs font-semibold transition-colors hover:bg-secondary/80"
+              title="Print or save as PDF"
+            >
+              <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M17 17h2a2 2 0 002-2v-4a2 2 0 00-2-2H5a2 2 0 00-2 2v4a2 2 0 002 2h2m2 4h6a2 2 0 002-2v-4a2 2 0 00-2-2H9a2 2 0 00-2 2v4a2 2 0 002 2zm8-12V5a2 2 0 00-2-2H9a2 2 0 00-2 2v4h10z" />
+              </svg>
+              Print / PDF
+            </button>
             {shareUrl && (
               <button
                 onClick={async () => {
@@ -182,7 +192,7 @@ export default function PlayerReportPage() {
                     toast.error("Failed to copy link");
                   }
                 }}
-                className="inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-1.5 text-xs font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:shadow-orange-500/25"
+                className="no-print inline-flex items-center gap-2 rounded-full bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-1.5 text-xs font-semibold text-white shadow-lg transition-all hover:shadow-xl hover:shadow-orange-500/25"
                 title="Copy share link"
               >
                 <svg className="h-3.5 w-3.5" fill="none" viewBox="0 0 24 24" stroke="currentColor">

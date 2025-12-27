@@ -24,6 +24,13 @@ const PlayerModal = dynamic(() => import("@/components/PlayerModal").then((mod) 
 const GameModal = dynamic(() => import("@/components/GameModal").then((mod) => ({ default: mod.GameModal })), {
   ssr: false,
 });
+const SeasonStatsChart = dynamic(() => import("@/components/SeasonStatsChart").then((mod) => ({ default: mod.SeasonStatsChart })), {
+  ssr: false,
+  loading: () => <div className="h-64 rounded-xl border border-border bg-card animate-pulse" />,
+});
+const GoalsTracker = dynamic(() => import("@/components/GoalsTracker").then((mod) => ({ default: mod.GoalsTracker })), {
+  ssr: false,
+});
 import {
   AlertDialog,
   AlertDialogContent,
@@ -382,10 +389,18 @@ export default function PlayerDetailPage() {
       const response = await generatePlayerReport(playerId, {
         game_ids: recentGames.map((g) => g.id),
       });
-      toast.success("Report generation started!");
+      toast.success("Report generation started!", { description: "This usually takes 10-20 seconds." });
 
-      // Poll for report completion
+      // Poll with exponential backoff and timeout
+      let attempt = 0;
+      const maxAttempts = 30; // ~2 minutes max
       const checkReport = async () => {
+        attempt++;
+        if (attempt > maxAttempts) {
+          toast.error("Report is taking longer than expected", { description: "Check back later." });
+          await loadPlayer();
+          return;
+        }
         try {
           const report = await getPlayerReportByPlayerId(playerId, response.id);
           if (report.status === "completed" || report.status === "failed") {
@@ -397,7 +412,8 @@ export default function PlayerDetailPage() {
               toast.error("Report generation failed", { description: report.error_text || "Unknown error" });
             }
           } else {
-            setTimeout(checkReport, 2000);
+            const delay = Math.min(2000 * Math.pow(1.3, attempt - 1), 10000);
+            setTimeout(checkReport, delay);
           }
         } catch {
           await loadPlayer();
@@ -493,6 +509,14 @@ export default function PlayerDetailPage() {
           </div>
         )}
       </div>
+
+      {/* Season Trend Charts & Goals */}
+      {games.length >= 2 && (
+        <div className="mb-8 space-y-6">
+          <SeasonStatsChart games={games} />
+          <GoalsTracker playerId={playerId} games={games} />
+        </div>
+      )}
 
       <div className="grid gap-8 lg:grid-cols-3">
         {/* Games Section */}

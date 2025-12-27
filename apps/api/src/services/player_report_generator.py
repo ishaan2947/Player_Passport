@@ -26,7 +26,7 @@ logger = structlog.get_logger()
 settings = get_settings()
 
 # Prompt version
-PROMPT_VERSION = "player_passport_v1"
+PROMPT_VERSION = "player_passport_v2"
 
 # Load prompt from file
 _prompt_path = Path(__file__).parent / "prompts" / f"{PROMPT_VERSION}.txt"

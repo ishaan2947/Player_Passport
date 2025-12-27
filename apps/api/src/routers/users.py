@@ -1,5 +1,7 @@
 """Users API router for Player Passport."""
 
+from datetime import datetime, timezone
+
 from fastapi import APIRouter, HTTPException, status
 
 import structlog
@@ -160,5 +162,5 @@ async def export_user_data(
             "created_at": current_user.created_at.isoformat(),
         },
         "players": players_data,
-        "exported_at": db.execute("SELECT NOW()").scalar().isoformat(),
+        "exported_at": datetime.now(timezone.utc).isoformat(),
     }

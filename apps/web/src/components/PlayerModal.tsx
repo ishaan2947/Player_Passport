@@ -27,7 +27,6 @@ export function PlayerModal({
     handleSubmit,
     formState: { errors },
     reset,
-    watch,
   } = useForm<PlayerFormData>({
     resolver: zodResolver(playerSchema),
     defaultValues: {
@@ -40,8 +39,6 @@ export function PlayerModal({
       goalsInput: "",
     },
   });
-
-  const goalsInput = watch("goalsInput");
 
   // Initialize form data when player changes (for edit mode)
   useEffect(() => {
@@ -76,8 +73,8 @@ export function PlayerModal({
       : [];
     const submitData: CreatePlayerInput = {
       name: data.name,
-      grade: data.grade || undefined,
-      position: data.position || undefined,
+      grade: data.grade || "",
+      position: data.position || "",
       height: data.height || undefined,
       team: data.team || undefined,
       goals,

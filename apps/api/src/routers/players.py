@@ -4,14 +4,18 @@ Player Passport API endpoints.
 
 from uuid import UUID
 
-from fastapi import APIRouter, Depends, HTTPException, Request, status
+from fastapi import APIRouter, BackgroundTasks, Depends, HTTPException, Request, status
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
+import structlog
+
 from src.core.auth import get_current_user
-from src.core.database import get_db
+from src.core.database import SessionLocal, get_db
 from src.core.rate_limit import check_report_generation_rate_limit
 from src.models import Player, PlayerGame, PlayerReport, User
+
+logger = structlog.get_logger()
 from src.schemas.player import (
     PlayerCreate,
     PlayerGameCreate,
@@ -285,19 +289,87 @@ async def delete_player_game(
 # ============================================================================
 
 
+def _run_report_generation(
+    report_id: UUID,
+    player_id: UUID,
+    game_ids: list[UUID],
+    correlation_id: str | None,
+) -> None:
+    """Background task: generate report with its own DB session."""
+    import asyncio
+
+    db = SessionLocal()
+    try:
+        result = db.execute(
+            select(Player).where(Player.id == player_id)
+        )
+        player = result.scalar_one_or_none()
+
+        result = db.execute(
+            select(PlayerGame).where(PlayerGame.id.in_(game_ids))
+        )
+        games = list(result.scalars().all())
+
+        result = db.execute(
+            select(PlayerReport).where(PlayerReport.id == report_id)
+        )
+        report = result.scalar_one_or_none()
+
+        if not player or not report:
+            logger.error("Background report generation: player or report not found",
+                         report_id=str(report_id))
+            return
+
+        # Run the async generator in a new event loop
+        loop = asyncio.new_event_loop()
+        try:
+            loop.run_until_complete(
+                generate_player_report(player, games, report, correlation_id=correlation_id)
+            )
+        finally:
+            loop.close()
+
+        db.commit()
+        logger.info("Background report generation completed",
+                     report_id=str(report_id), status=report.status)
+
+    except Exception as e:
+        logger.error("Background report generation failed",
+                     report_id=str(report_id), error=str(e))
+        try:
+            result = db.execute(
+                select(PlayerReport).where(PlayerReport.id == report_id)
+            )
+            report = result.scalar_one_or_none()
+            if report:
+                report.status = "failed"
+                report.error_text = f"Background generation error: {str(e)}"
+                db.commit()
+        except Exception:
+            db.rollback()
+    finally:
+        db.close()
+
+
 @router.post(
     "/{player_id}/reports",
     response_model=PlayerReportResponse,
-    status_code=status.HTTP_201_CREATED,
+    status_code=status.HTTP_202_ACCEPTED,
 )
 async def create_player_report(
     player_id: UUID,
     report_data: PlayerReportCreate,
     request: Request,
+    background_tasks: BackgroundTasks,
     current_user: User = Depends(get_current_user),
     db: Session = Depends(get_db),
 ) -> PlayerReport:
-    """Generate a new development report for a player."""
+    """
+    Start generating a new development report for a player.
+
+    Returns immediately with status='pending'. Poll GET
+    /players/{player_id}/reports/{report_id} to check completion.
+    """
     # Verify player exists and belongs to user
     result = db.execute(
         select(Player)
@@ -310,7 +382,6 @@ async def create_player_report(
 
     # Get games to include
     if report_data.game_ids:
-        # Use specific games
         result = db.execute(
             select(PlayerGame).where(
                 PlayerGame.player_id == player_id,
@@ -319,7 +390,6 @@ async def create_player_report(
         )
         games = list(result.scalars().all())
     else:
-        # Use most recent 5 games
         result = db.execute(
             select(PlayerGame)
             .where(PlayerGame.player_id == player_id)
@@ -334,29 +404,35 @@ async def create_player_report(
             detail="At least 3 games are required to generate a report",
         )
 
-    # Check rate limit for report generation (stricter than general rate limit)
+    # Check rate limit for report generation
     is_allowed, error_message = check_report_generation_rate_limit(
         str(current_user.id), requests_per_hour=10
     )
     if not is_allowed:
         raise HTTPException(status_code=429, detail=error_message)
 
-    # Create report
+    # Create report record with pending status
+    from src.services.player_report_generator import compute_report_window
+
     report = PlayerReport(
         player_id=player_id,
         status="pending",
+        report_window=compute_report_window(games),
     )
     db.add(report)
     db.commit()
     db.refresh(report)
 
-    # Generate report with correlation ID
+    # Dispatch generation to background
     correlation_id = getattr(request.state, "correlation_id", None)
-    report = await generate_player_report(
-        player, games, report, correlation_id=correlation_id
+    game_ids = [g.id for g in games]
+    background_tasks.add_task(
+        _run_report_generation,
+        report.id,
+        player_id,
+        game_ids,
+        correlation_id,
     )
-    db.commit()
-    db.refresh(report)
 
     return report
 

@@ -4,13 +4,14 @@ Main application entry point
 """
 
 import os
+import threading
 import time
 from contextlib import asynccontextmanager
 from typing import Any
 
 import sentry_sdk
 import structlog
-from fastapi import FastAPI, Request, Response
+from fastapi import FastAPI, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from sqlalchemy import text
@@ -60,37 +61,39 @@ logger = structlog.get_logger()
 settings = get_settings()
 ENVIRONMENT = settings.environment
 
-# Rate limiting placeholder (in-memory, swap to Redis later)
-rate_limit_store: dict[str, list[float]] = {}
-RATE_LIMIT_REQUESTS = int(os.getenv("RATE_LIMIT_REQUESTS_PER_MINUTE", "60"))
+# Thread-safe rate limiting
+_rate_limit_lock = threading.Lock()
+_rate_limit_store: dict[str, list[float]] = {}
+RATE_LIMIT_REQUESTS = settings.rate_limit_requests_per_minute
 RATE_LIMIT_WINDOW = 60  # seconds
 
 
-def check_rate_limit(client_ip: str) -> bool:
+def check_rate_limit(client_ip: str) -> tuple[bool, int, int]:
     """
-    Simple in-memory rate limiting.
-    Returns True if request is allowed, False if rate limited.
-
-    TODO: Replace with Redis-based rate limiting for production.
+    Thread-safe in-memory rate limiting.
+    Returns (is_allowed, remaining_requests, seconds_until_reset).
     """
     current_time = time.time()
     window_start = current_time - RATE_LIMIT_WINDOW
 
-    if client_ip not in rate_limit_store:
-        rate_limit_store[client_ip] = []
+    with _rate_limit_lock:
+        if client_ip not in _rate_limit_store:
+            _rate_limit_store[client_ip] = []
 
-    # Clean old entries
-    rate_limit_store[client_ip] = [
-        t for t in rate_limit_store[client_ip] if t > window_start
-    ]
+        _rate_limit_store[client_ip] = [
+            t for t in _rate_limit_store[client_ip] if t > window_start
+        ]
 
-    # Check limit
-    if len(rate_limit_store[client_ip]) >= RATE_LIMIT_REQUESTS:
-        return False
+        count = len(_rate_limit_store[client_ip])
+        remaining = max(0, RATE_LIMIT_REQUESTS - count)
 
-    # Record request
-    rate_limit_store[client_ip].append(current_time)
-    return True
+        if count >= RATE_LIMIT_REQUESTS:
+            oldest = _rate_limit_store[client_ip][0]
+            reset = int(oldest + RATE_LIMIT_WINDOW - current_time)
+            return False, 0, max(reset, 1)
+
+        _rate_limit_store[client_ip].append(current_time)
+        return True, remaining - 1, RATE_LIMIT_WINDOW
 
 
 @asynccontextmanager
@@ -130,8 +133,8 @@ app.add_middleware(
     CORSMiddleware,
     allow_origins=allowed_origins,
     allow_credentials=True,
-    allow_methods=["*"],
-    allow_headers=["*"],
+    allow_methods=["GET", "POST", "PUT", "PATCH", "DELETE", "OPTIONS"],
+    allow_headers=["Authorization", "Content-Type", "X-Correlation-ID"],
 )
 
 # Register exception handlers
@@ -143,23 +146,45 @@ app.include_router(players_router)
 
 
 @app.middleware("http")
+async def security_headers_middleware(request: Request, call_next) -> Response:
+    """Add security headers to all responses."""
+    response = await call_next(request)
+    response.headers["X-Content-Type-Options"] = "nosniff"
+    response.headers["X-Frame-Options"] = "DENY"
+    response.headers["X-XSS-Protection"] = "1; mode=block"
+    response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
+    if ENVIRONMENT == "production":
+        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+    return response
+
+
+@app.middleware("http")
 async def rate_limit_middleware(request: Request, call_next) -> Response:
-    """Rate limiting middleware."""
-    # Skip rate limiting for health check
-    if request.url.path == "/health":
+    """Rate limiting middleware with standard headers."""
+    if request.url.path in ("/health", "/"):
         return await call_next(request)
 
     client_ip = request.client.host if request.client else "unknown"
+    allowed, remaining, reset = check_rate_limit(client_ip)
 
-    if not check_rate_limit(client_ip):
+    if not allowed:
         logger.warning("Rate limit exceeded", client_ip=client_ip)
-        return Response(
+        response = Response(
             content='{"detail": "Rate limit exceeded. Please try again later."}',
             status_code=429,
             media_type="application/json",
         )
+        response.headers["X-RateLimit-Limit"] = str(RATE_LIMIT_REQUESTS)
+        response.headers["X-RateLimit-Remaining"] = "0"
+        response.headers["X-RateLimit-Reset"] = str(reset)
+        response.headers["Retry-After"] = str(reset)
+        return response
 
-    return await call_next(request)
+    response = await call_next(request)
+    response.headers["X-RateLimit-Limit"] = str(RATE_LIMIT_REQUESTS)
+    response.headers["X-RateLimit-Remaining"] = str(remaining)
+    response.headers["X-RateLimit-Reset"] = str(reset)
+    return response
 
 
 @app.middleware("http")
@@ -224,29 +249,32 @@ class ErrorResponse(BaseModel):
     response_model=HealthResponse,
     tags=["Health"],
     summary="Health check endpoint",
+    responses={503: {"model": HealthResponse}},
 )
-async def health_check() -> HealthResponse:
+async def health_check() -> Response:
     """
     Health check endpoint.
-    Returns the current status of the API.
+    Returns 200 if healthy, 503 if unhealthy.
     """
-    # Quick database connectivity check
+    db_ok = False
     try:
         with engine.connect() as conn:
             conn.execute(text("SELECT 1"))
             conn.commit()
+        db_ok = True
     except Exception as e:
         logger.error("Database health check failed", error=str(e))
-        return HealthResponse(
-            status="unhealthy",
-            environment=ENVIRONMENT,
-            version="1.0.0",
-        )
 
-    return HealthResponse(
-        status="healthy",
+    body = HealthResponse(
+        status="healthy" if db_ok else "unhealthy",
         environment=ENVIRONMENT,
         version="1.0.0",
+    )
+
+    return Response(
+        content=body.model_dump_json(),
+        media_type="application/json",
+        status_code=status.HTTP_200_OK if db_ok else status.HTTP_503_SERVICE_UNAVAILABLE,
     )
 
 
@@ -261,3 +289,50 @@ async def root() -> dict[str, Any]:
         "docs": "/docs" if ENVIRONMENT == "development" else None,
         "health": "/health",
     }
+
+
+# Status / metrics endpoint for production monitoring
+@app.get("/status", tags=["Health"])
+async def app_status() -> dict[str, Any]:
+    """
+    Detailed status endpoint for monitoring dashboards.
+    Returns DB connectivity, OpenAI reachability, and basic metrics.
+    """
+    from src.core.database import SessionLocal
+    from src.models import Player, PlayerReport, User
+
+    checks: dict[str, Any] = {
+        "version": "1.0.0",
+        "environment": ENVIRONMENT,
+        "database": "unknown",
+        "openai": "unknown",
+    }
+    metrics: dict[str, Any] = {}
+
+    # Database check + basic counts
+    try:
+        with engine.connect() as conn:
+            conn.execute(text("SELECT 1"))
+            conn.commit()
+        checks["database"] = "connected"
+
+        db = SessionLocal()
+        try:
+            metrics["total_users"] = db.query(User).count()
+            metrics["total_players"] = db.query(Player).count()
+            metrics["total_reports"] = db.query(PlayerReport).count()
+            metrics["pending_reports"] = (
+                db.query(PlayerReport).filter(PlayerReport.status.in_(["pending", "generating"])).count()
+            )
+        finally:
+            db.close()
+    except Exception as e:
+        checks["database"] = f"error: {str(e)}"
+
+    # OpenAI reachability check
+    if settings.openai_api_key:
+        checks["openai"] = "configured"
+    else:
+        checks["openai"] = "not_configured"
+
+    return {"checks": checks, "metrics": metrics}
