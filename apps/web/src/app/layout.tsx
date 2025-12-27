@@ -15,11 +15,11 @@ const jetbrainsMono = JetBrains_Mono({
 
 export const metadata: Metadata = {
   title: {
-    default: "Explain My Game - AI Basketball Coaching Insights",
-    template: "%s | Explain My Game",
+    default: "Player Passport - AI Basketball Development Reports",
+    template: "%s | Player Passport",
   },
   description:
-    "Transform your basketball game stats into actionable coaching insights with AI. Get post-game reports, key insights, action items, and practice focus areas.",
+    "Transform your basketball game stats into actionable development insights with AI. Get comprehensive player reports, growth tracking, and personalized practice recommendations.",
   keywords: [
     "basketball",
     "coaching",
@@ -28,26 +28,26 @@ export const metadata: Metadata = {
     "sports",
     "game analysis",
     "basketball stats",
-    "coaching insights",
-    "post-game report",
+    "player development",
+    "development reports",
     "basketball training",
   ],
-  authors: [{ name: "Explain My Game" }],
-  creator: "Explain My Game",
+  authors: [{ name: "Player Passport" }],
+  creator: "Player Passport",
   openGraph: {
     type: "website",
     locale: "en_US",
-    url: "https://explainmygame.com",
-    title: "Explain My Game - AI Basketball Coaching Insights",
+    url: "https://playerpassport.com",
+    title: "Player Passport - AI Basketball Development Reports",
     description:
-      "Transform your basketball game stats into actionable coaching insights with AI.",
-    siteName: "Explain My Game",
+      "Transform your basketball game stats into actionable development insights with AI.",
+    siteName: "Player Passport",
   },
   twitter: {
     card: "summary_large_image",
-    title: "Explain My Game - AI Basketball Coaching Insights",
+    title: "Player Passport - AI Basketball Development Reports",
     description:
-      "Transform your basketball game stats into actionable coaching insights with AI.",
+      "Transform your basketball game stats into actionable development insights with AI.",
   },
   robots: {
     index: true,

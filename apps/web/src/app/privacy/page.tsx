@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Privacy Policy",
-  description: "Privacy policy for Explain My Game - AI basketball coaching insights",
+  description: "Privacy policy for Player Passport - AI basketball development reports",
 };
 
 export default function PrivacyPage() {
@@ -20,7 +20,7 @@ export default function PrivacyPage() {
                 <path d="M2 12h20" />
               </svg>
             </div>
-            <span className="text-xl font-bold">Explain My Game</span>
+            <span className="text-xl font-bold">Player Passport</span>
           </Link>
           <nav className="flex items-center gap-4">
             <Link href="/sign-in" className="text-sm font-medium text-muted-foreground hover:text-foreground">
@@ -45,7 +45,7 @@ export default function PrivacyPage() {
           <section>
             <h2 className="text-2xl font-semibold">Introduction</h2>
             <p className="text-muted-foreground leading-relaxed">
-              At Explain My Game (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;), we are committed to protecting your privacy. 
+              At Player Passport (&quot;we,&quot; &quot;our,&quot; or &quot;us&quot;), we are committed to protecting your privacy. 
               This Privacy Policy explains how we collect, use, disclose, and safeguard your information 
               when you use our basketball coaching insights platform.
             </p>
@@ -127,8 +127,8 @@ export default function PrivacyPage() {
             <h2 className="text-2xl font-semibold">Contact Us</h2>
             <p className="text-muted-foreground leading-relaxed">
               If you have questions about this Privacy Policy, please contact us at{" "}
-              <a href="mailto:privacy@explainmygame.com" className="text-primary hover:underline">
-                privacy@explainmygame.com
+              <a href="mailto:privacy@playerpassport.com" className="text-primary hover:underline">
+                privacy@playerpassport.com
               </a>
             </p>
           </section>
@@ -138,7 +138,7 @@ export default function PrivacyPage() {
       {/* Footer */}
       <footer className="border-t border-border py-8">
         <div className="container flex flex-col items-center justify-between gap-4 text-sm text-muted-foreground md:flex-row">
-          <p>© 2024 Explain My Game. All rights reserved.</p>
+          <p>© 2024 Player Passport. All rights reserved.</p>
           <nav className="flex gap-4">
             <Link href="/privacy" className="text-foreground">Privacy</Link>
             <Link href="/terms" className="hover:text-foreground">Terms</Link>
