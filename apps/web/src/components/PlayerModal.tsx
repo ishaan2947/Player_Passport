@@ -73,8 +73,8 @@ export function PlayerModal({
       : [];
     const submitData: CreatePlayerInput = {
       name: data.name,
-      grade: data.grade || "",
-      position: data.position || "",
+      grade: data.grade!,
+      position: data.position!,
       height: data.height || undefined,
       team: data.team || undefined,
       goals,
@@ -111,12 +111,16 @@ export function PlayerModal({
           <div className="grid grid-cols-2 gap-4">
             <div>
               <label htmlFor="grade" className="mb-1 block text-sm font-medium">
-                Grade
+                Grade *
               </label>
               <select
                 id="grade"
                 {...register("grade")}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className={`w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
+                  errors.grade
+                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                    : "border-border focus:border-primary focus:ring-primary"
+                }`}
               >
                 <option value="">Select grade</option>
                 <option value="6th">6th Grade</option>
@@ -127,15 +131,22 @@ export function PlayerModal({
                 <option value="Junior">Junior</option>
                 <option value="Senior">Senior</option>
               </select>
+              {errors.grade && (
+                <p className="mt-1 text-xs text-red-500">{errors.grade.message}</p>
+              )}
             </div>
             <div>
               <label htmlFor="position" className="mb-1 block text-sm font-medium">
-                Position
+                Position *
               </label>
               <select
                 id="position"
                 {...register("position")}
-                className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm focus:border-primary focus:outline-none focus:ring-1 focus:ring-primary"
+                className={`w-full rounded-lg border bg-background px-3 py-2 text-sm focus:outline-none focus:ring-1 ${
+                  errors.position
+                    ? "border-red-500 focus:border-red-500 focus:ring-red-500"
+                    : "border-border focus:border-primary focus:ring-primary"
+                }`}
               >
                 <option value="">Select position</option>
                 <option value="PG">Point Guard (PG)</option>
@@ -146,6 +157,9 @@ export function PlayerModal({
                 <option value="G">Guard (G)</option>
                 <option value="F">Forward (F)</option>
               </select>
+              {errors.position && (
+                <p className="mt-1 text-xs text-red-500">{errors.position.message}</p>
+              )}
             </div>
           </div>
           <div className="grid grid-cols-2 gap-4">

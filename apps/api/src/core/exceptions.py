@@ -139,3 +139,30 @@ def register_exception_handlers(app: FastAPI) -> None:
                 "error_code": exc.error_code,
             },
         )
+
+    @app.exception_handler(Exception)
+    async def global_exception_handler(
+        request: Request, exc: Exception
+    ) -> JSONResponse:
+        """
+        Catch-all handler for any unhandled exception.
+
+        Critical for CORS: Without this, unhandled exceptions propagate to
+        Starlette's ServerErrorMiddleware which returns a 500 response that
+        bypasses CORSMiddleware, causing the browser to show a misleading
+        'CORS policy' error instead of the actual server error.
+        """
+        logger.error(
+            "Unhandled exception",
+            error=str(exc),
+            error_type=type(exc).__name__,
+            path=request.url.path,
+            exc_info=True,
+        )
+        return JSONResponse(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            content={
+                "detail": "An internal server error occurred.",
+                "error_code": "INTERNAL_ERROR",
+            },
+        )
