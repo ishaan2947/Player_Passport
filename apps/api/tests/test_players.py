@@ -176,10 +176,11 @@ class TestCreateGame:
         assert response.status_code == 422
 
     def test_create_game_future_date(self, client, test_user, test_player, auth_headers):
+        # Grace period allows +1 day; 2+ days in the future should be rejected
         response = client.post(
             f"/players/{test_player.id}/games",
             json={
-                "game_date": str(date.today() + timedelta(days=1)),
+                "game_date": str(date.today() + timedelta(days=2)),
                 "opponent": "Future Team",
             },
             headers=auth_headers,

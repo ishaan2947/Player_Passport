@@ -4,7 +4,7 @@ Pydantic schemas for Player Passport.
 
 from __future__ import annotations
 
-from datetime import date, datetime
+from datetime import date, datetime, timedelta
 from typing import Literal
 from uuid import UUID
 
@@ -48,8 +48,8 @@ class PlayerGameCreate(BaseModel):
             raise ValueError("Free throws made (ftm) cannot exceed free throws attempted (fta)")
         if self.tpa > self.fga:
             raise ValueError("Three point attempts (tpa) cannot exceed total field goal attempts (fga)")
-        if self.game_date > date.today():
-            raise ValueError("Game date cannot be in the future")
+        if self.game_date > date.today() + timedelta(days=1):
+            raise ValueError("Game date cannot be more than 1 day in the future")
         return self
 
 

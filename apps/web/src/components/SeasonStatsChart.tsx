@@ -1,6 +1,6 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useMemo, useState, useEffect } from "react";
 import {
   LineChart,
   Line,
@@ -36,6 +36,8 @@ interface SeasonStatsChartProps {
 
 export function SeasonStatsChart({ games }: SeasonStatsChartProps) {
   const [activeStats, setActiveStats] = useState<StatKey[]>(["pts", "reb", "ast"]);
+  const [mounted, setMounted] = useState(false);
+  useEffect(() => { setMounted(true); }, []);
 
   const chartData = useMemo(() => {
     return games
@@ -119,8 +121,8 @@ export function SeasonStatsChart({ games }: SeasonStatsChartProps) {
       </div>
 
       {/* Chart */}
-      <div className="h-64 w-full">
-        <ResponsiveContainer width="100%" height="100%">
+      <div className="h-64 w-full min-w-0">
+        {mounted && <ResponsiveContainer width="100%" height="100%">
           <LineChart data={chartData} margin={{ top: 5, right: 10, left: -10, bottom: 5 }}>
             <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
             <XAxis
@@ -162,7 +164,7 @@ export function SeasonStatsChart({ games }: SeasonStatsChartProps) {
               />
             ))}
           </LineChart>
-        </ResponsiveContainer>
+        </ResponsiveContainer>}
       </div>
 
       {/* Season Averages */}

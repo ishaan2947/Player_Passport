@@ -66,9 +66,10 @@ class TestPlayerGameCreate:
             )
 
     def test_future_game_date(self):
+        # Grace period allows +1 day; only 2+ days in the future should be rejected
         with pytest.raises(ValidationError, match="future"):
             PlayerGameCreate(
-                game_date=date.today() + timedelta(days=1),
+                game_date=date.today() + timedelta(days=2),
                 opponent="Test",
             )
 

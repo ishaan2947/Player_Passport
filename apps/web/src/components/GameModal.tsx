@@ -22,6 +22,12 @@ export function GameModal({
   game,
 }: GameModalProps) {
   const isEditMode = !!game;
+  // Get local date in YYYY-MM-DD format (avoids UTC timezone mismatch)
+  function localDateString() {
+    const d = new Date();
+    return `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`;
+  }
+
   const {
     register,
     handleSubmit,
@@ -32,7 +38,7 @@ export function GameModal({
     resolver: zodResolver(gameSchema),
     defaultValues: {
       game_label: "",
-      game_date: new Date().toISOString().split("T")[0] ?? "",
+      game_date: localDateString(),
       opponent: "",
       minutes: undefined,
       pts: 0,
@@ -82,7 +88,7 @@ export function GameModal({
       } else {
         reset({
           game_label: "",
-          game_date: new Date().toISOString().split("T")[0] ?? "",
+          game_date: localDateString(),
           opponent: "",
           minutes: undefined,
           pts: 0,
@@ -103,24 +109,28 @@ export function GameModal({
     }
   }, [game, isOpen, reset]);
 
+  function safeInt(v: number | undefined | null, fallback = 0): number {
+    return typeof v === "number" && isFinite(v) ? Math.round(v) : fallback;
+  }
+
   function onSubmitForm(data: GameFormData) {
     const submitData: CreatePlayerGameInput = {
       game_date: data.game_date,
       opponent: data.opponent,
       game_label: data.game_label || undefined,
-      minutes: data.minutes ?? undefined,
-      pts: data.pts,
-      reb: data.reb,
-      ast: data.ast,
-      stl: data.stl,
-      blk: data.blk,
-      tov: data.tov,
-      fgm: data.fgm,
-      fga: data.fga,
-      tpm: data.tpm,
-      tpa: data.tpa,
-      ftm: data.ftm,
-      fta: data.fta,
+      minutes: typeof data.minutes === "number" && isFinite(data.minutes) ? Math.round(data.minutes) : undefined,
+      pts: safeInt(data.pts),
+      reb: safeInt(data.reb),
+      ast: safeInt(data.ast),
+      stl: safeInt(data.stl),
+      blk: safeInt(data.blk),
+      tov: safeInt(data.tov),
+      fgm: safeInt(data.fgm),
+      fga: safeInt(data.fga),
+      tpm: safeInt(data.tpm),
+      tpa: safeInt(data.tpa),
+      ftm: safeInt(data.ftm),
+      fta: safeInt(data.fta),
       notes: data.notes || undefined,
     };
     onSubmit(submitData);
