@@ -154,7 +154,9 @@ async def security_headers_middleware(request: Request, call_next) -> Response:
     response.headers["X-XSS-Protection"] = "1; mode=block"
     response.headers["Referrer-Policy"] = "strict-origin-when-cross-origin"
     if ENVIRONMENT == "production":
-        response.headers["Strict-Transport-Security"] = "max-age=31536000; includeSubDomains"
+        response.headers["Strict-Transport-Security"] = (
+            "max-age=31536000; includeSubDomains"
+        )
     return response
 
 
@@ -274,7 +276,9 @@ async def health_check() -> Response:
     return Response(
         content=body.model_dump_json(),
         media_type="application/json",
-        status_code=status.HTTP_200_OK if db_ok else status.HTTP_503_SERVICE_UNAVAILABLE,
+        status_code=status.HTTP_200_OK
+        if db_ok
+        else status.HTTP_503_SERVICE_UNAVAILABLE,
     )
 
 
@@ -322,7 +326,9 @@ async def app_status() -> dict[str, Any]:
             metrics["total_players"] = db.query(Player).count()
             metrics["total_reports"] = db.query(PlayerReport).count()
             metrics["pending_reports"] = (
-                db.query(PlayerReport).filter(PlayerReport.status.in_(["pending", "generating"])).count()
+                db.query(PlayerReport)
+                .filter(PlayerReport.status.in_(["pending", "generating"]))
+                .count()
             )
         finally:
             db.close()

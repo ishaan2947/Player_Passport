@@ -41,13 +41,21 @@ class PlayerGameCreate(BaseModel):
     def validate_shooting_stats(self) -> "PlayerGameCreate":
         """Ensure shooting stats are logically consistent."""
         if self.fgm > self.fga:
-            raise ValueError("Field goals made (fgm) cannot exceed field goals attempted (fga)")
+            raise ValueError(
+                "Field goals made (fgm) cannot exceed field goals attempted (fga)"
+            )
         if self.tpm > self.tpa:
-            raise ValueError("Three pointers made (tpm) cannot exceed three pointers attempted (tpa)")
+            raise ValueError(
+                "Three pointers made (tpm) cannot exceed three pointers attempted (tpa)"
+            )
         if self.ftm > self.fta:
-            raise ValueError("Free throws made (ftm) cannot exceed free throws attempted (fta)")
+            raise ValueError(
+                "Free throws made (ftm) cannot exceed free throws attempted (fta)"
+            )
         if self.tpa > self.fga:
-            raise ValueError("Three point attempts (tpa) cannot exceed total field goal attempts (fga)")
+            raise ValueError(
+                "Three point attempts (tpa) cannot exceed total field goal attempts (fga)"
+            )
         if self.game_date > date.today() + timedelta(days=1):
             raise ValueError("Game date cannot be more than 1 day in the future")
         return self
@@ -78,13 +86,21 @@ class PlayerGameUpdate(BaseModel):
     def validate_shooting_stats(self) -> "PlayerGameUpdate":
         """Ensure shooting stats are logically consistent when provided."""
         if self.fgm is not None and self.fga is not None and self.fgm > self.fga:
-            raise ValueError("Field goals made (fgm) cannot exceed field goals attempted (fga)")
+            raise ValueError(
+                "Field goals made (fgm) cannot exceed field goals attempted (fga)"
+            )
         if self.tpm is not None and self.tpa is not None and self.tpm > self.tpa:
-            raise ValueError("Three pointers made (tpm) cannot exceed three pointers attempted (tpa)")
+            raise ValueError(
+                "Three pointers made (tpm) cannot exceed three pointers attempted (tpa)"
+            )
         if self.ftm is not None and self.fta is not None and self.ftm > self.fta:
-            raise ValueError("Free throws made (ftm) cannot exceed free throws attempted (fta)")
+            raise ValueError(
+                "Free throws made (ftm) cannot exceed free throws attempted (fta)"
+            )
         if self.tpa is not None and self.fga is not None and self.tpa > self.fga:
-            raise ValueError("Three point attempts (tpa) cannot exceed total field goal attempts (fga)")
+            raise ValueError(
+                "Three point attempts (tpa) cannot exceed total field goal attempts (fga)"
+            )
         if self.game_date is not None and self.game_date > date.today():
             raise ValueError("Game date cannot be in the future")
         return self
