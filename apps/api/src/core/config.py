@@ -20,7 +20,7 @@ class Settings(BaseSettings):
 
     # Database
     database_url: str = (
-        "postgresql://emg_user:emg_password@localhost:5432/explain_my_game"
+        "postgresql://pp_user:pp_password@localhost:5432/playerpassport"
     )
 
     # OpenAI

@@ -231,14 +231,14 @@ users (id, clerk_id, email, created_at, updated_at)
 
 ```bash
 git clone <repo-url>
-cd Player_Passport
+cd playerpassport
 ```
 
 2. **Set up environment variables**
 
 Create `apps/api/.env`:
 ```env
-DATABASE_URL=postgresql://emg_user:emg_password@postgres:5432player_passport
+DATABASE_URL=postgresql://pp_user:pp_password@postgres:5432/playerpassport
 OPENAI_API_KEY=sk-your-openai-key-here
 ENVIRONMENT=development
 CLERK_SECRET_KEY=sk_test_...  # Optional for dev

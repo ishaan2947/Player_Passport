@@ -1,9 +1,9 @@
-# fly.toml app configuration file generated for explain-my-game-api on 2025-12-28T11:32:52-06:00
+# fly.toml app configuration file generated for playerpassport-api on 2025-12-28T11:32:52-06:00
 #
 # See https://fly.io/docs/reference/configuration/ for information about how to use this file.
 #
 
-app = 'explain-my-game-api'
+app = 'playerpassport-api'
 primary_region = 'iad'
 
 [build]

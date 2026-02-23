@@ -3,7 +3,7 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Terms of Service",
-  description: "Terms of service for Explain My Game - AI basketball coaching insights",
+  description: "Terms of service for Player Passport - AI basketball development reports",
 };
 
 export default function TermsPage() {
@@ -20,7 +20,7 @@ export default function TermsPage() {
                 <path d="M2 12h20" />
               </svg>
             </div>
-            <span className="text-xl font-bold">Explain My Game</span>
+            <span className="text-xl font-bold">Player Passport</span>
           </Link>
           <nav className="flex items-center gap-4">
             <Link href="/sign-in" className="text-sm font-medium text-muted-foreground hover:text-foreground">
@@ -45,7 +45,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-2xl font-semibold">Agreement to Terms</h2>
             <p className="text-muted-foreground leading-relaxed">
-              By accessing or using Explain My Game, you agree to be bound by these Terms of Service. 
+              By accessing or using Player Passport, you agree to be bound by these Terms of Service. 
               If you disagree with any part of these terms, you may not access the service.
             </p>
           </section>
@@ -53,7 +53,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-2xl font-semibold">Description of Service</h2>
             <p className="text-muted-foreground leading-relaxed">
-              Explain My Game is a platform that uses artificial intelligence to analyze basketball 
+              Player Passport is a platform that uses artificial intelligence to analyze basketball 
               game statistics and provide coaching insights. Our service includes:
             </p>
             <ul className="mt-4 list-disc space-y-2 pl-6 text-muted-foreground">
@@ -110,7 +110,7 @@ export default function TermsPage() {
             <h2 className="text-2xl font-semibold">Intellectual Property</h2>
             <p className="text-muted-foreground leading-relaxed">
               The service and its original content, features, and functionality are owned by 
-              Explain My Game and are protected by international copyright, trademark, and other 
+              Player Passport and are protected by international copyright, trademark, and other 
               intellectual property laws. Your game data and statistics remain your property.
             </p>
           </section>
@@ -118,7 +118,7 @@ export default function TermsPage() {
           <section>
             <h2 className="text-2xl font-semibold">Limitation of Liability</h2>
             <p className="text-muted-foreground leading-relaxed">
-              To the maximum extent permitted by law, Explain My Game shall not be liable for any 
+              To the maximum extent permitted by law, Player Passport shall not be liable for any 
               indirect, incidental, special, consequential, or punitive damages, including loss of 
               profits, data, or other intangible losses resulting from your use of the service.
             </p>
@@ -146,8 +146,8 @@ export default function TermsPage() {
             <h2 className="text-2xl font-semibold">Contact Us</h2>
             <p className="text-muted-foreground leading-relaxed">
               If you have questions about these Terms of Service, please contact us at{" "}
-              <a href="mailto:legal@explainmygame.com" className="text-primary hover:underline">
-                legal@explainmygame.com
+              <a href="mailto:legal@playerpassport.com" className="text-primary hover:underline">
+                legal@playerpassport.com
               </a>
             </p>
           </section>
@@ -157,7 +157,7 @@ export default function TermsPage() {
       {/* Footer */}
       <footer className="border-t border-border py-8">
         <div className="container flex flex-col items-center justify-between gap-4 text-sm text-muted-foreground md:flex-row">
-          <p>© 2024 Explain My Game. All rights reserved.</p>
+          <p>© 2024 Player Passport. All rights reserved.</p>
           <nav className="flex gap-4">
             <Link href="/privacy" className="hover:text-foreground">Privacy</Link>
             <Link href="/terms" className="text-foreground">Terms</Link>

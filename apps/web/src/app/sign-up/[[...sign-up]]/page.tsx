@@ -50,7 +50,7 @@ export default function SignUpPage() {
                   <path d="M2 12h20" />
                 </svg>
               </div>
-              <h1 className="text-2xl font-bold">Explain My Game</h1>
+              <h1 className="text-2xl font-bold">Player Passport</h1>
               <p className="text-muted-foreground mt-2">Development Mode</p>
             </div>
             

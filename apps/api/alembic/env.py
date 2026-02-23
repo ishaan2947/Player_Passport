@@ -30,7 +30,7 @@ target_metadata = Base.metadata
 # Get database URL from environment
 database_url = os.getenv(
     "DATABASE_URL",
-    "postgresql://emg_user:emg_password@localhost:5432/explain_my_game",
+    "postgresql://pp_user:pp_password@localhost:5432/playerpassport",
 )
 
 # Fix for Fly.io/Heroku: postgres:// -> postgresql://

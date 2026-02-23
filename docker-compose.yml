@@ -1,18 +1,18 @@
 services:
   postgres:
     image: pgvector/pgvector:pg16
-    container_name: emg_postgres
+    container_name: pp_postgres
     restart: unless-stopped
     environment:
-      POSTGRES_USER: ${POSTGRES_USER:-emg_user}
-      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-emg_password}
-      POSTGRES_DB: ${POSTGRES_DB:-explain_my_game}
+      POSTGRES_USER: ${POSTGRES_USER:-pp_user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-pp_password}
+      POSTGRES_DB: ${POSTGRES_DB:-playerpassport}
     ports:
       - "5432:5432"
     volumes:
       - postgres_data:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-emg_user} -d ${POSTGRES_DB:-explain_my_game}"]
+      test: ["CMD-SHELL", "pg_isready -U ${POSTGRES_USER:-pp_user} -d ${POSTGRES_DB:-playerpassport}"]
       interval: 5s
       timeout: 5s
       retries: 5
@@ -23,10 +23,10 @@ services:
       dockerfile: Dockerfile
       args:
         CACHEBUST: ${CACHEBUST:-2}
-    container_name: emg_api
+    container_name: pp_api
     restart: unless-stopped
     environment:
-      DATABASE_URL: postgresql://${POSTGRES_USER:-emg_user}:${POSTGRES_PASSWORD:-emg_password}@postgres:5432/${POSTGRES_DB:-explain_my_game}
+      DATABASE_URL: postgresql://${POSTGRES_USER:-pp_user}:${POSTGRES_PASSWORD:-pp_password}@postgres:5432/${POSTGRES_DB:-playerpassport}
       CLERK_SECRET_KEY: ${CLERK_SECRET_KEY:-}
       CLERK_PUBLISHABLE_KEY: ${CLERK_PUBLISHABLE_KEY:-}
       OPENAI_API_KEY: ${OPENAI_API_KEY:-}
@@ -51,7 +51,7 @@ services:
       context: ./apps/web
       dockerfile: Dockerfile
       target: dev
-    container_name: emg_web
+    container_name: pp_web
     restart: unless-stopped
     environment:
       NEXT_PUBLIC_API_URL: ${NEXT_PUBLIC_API_URL:-http://localhost:8000}
