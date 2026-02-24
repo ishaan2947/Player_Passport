@@ -19,9 +19,7 @@ class Settings(BaseSettings):
     )
 
     # Database
-    database_url: str = (
-        "postgresql://pp_user:pp_password@localhost:5432/playerpassport"
-    )
+    database_url: str = "postgresql://pp_user:pp_password@localhost:5432/playerpassport"
 
     # OpenAI
     openai_api_key: str = ""

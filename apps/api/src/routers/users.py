@@ -21,9 +21,7 @@ async def get_current_user(
 ) -> dict:
     """Get current user information."""
     # Get player count
-    player_count = (
-        db.query(Player).filter(Player.user_id == current_user.id).count()
-    )
+    player_count = db.query(Player).filter(Player.user_id == current_user.id).count()
 
     return {
         "id": str(current_user.id),
