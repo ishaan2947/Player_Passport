@@ -6,8 +6,7 @@ import uuid
 from datetime import datetime, timezone
 from typing import Literal
 
-from sqlalchemy import DateTime, ForeignKey, String, Text, text
-from sqlalchemy.dialects.postgresql import JSONB, UUID
+from sqlalchemy import DateTime, ForeignKey, JSON, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.database import Base
@@ -22,13 +21,12 @@ class PlayerReport(Base):
     __tablename__ = "player_reports"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        Uuid(as_uuid=True, native_uuid=False),
         primary_key=True,
         default=uuid.uuid4,
-        server_default=text("gen_random_uuid()"),
     )
     player_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        Uuid(as_uuid=True, native_uuid=False),
         ForeignKey("players.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -46,7 +44,7 @@ class PlayerReport(Base):
 
     # The full report JSON matching the schema
     report_json: Mapped[dict | None] = mapped_column(
-        JSONB,
+        JSON,
         nullable=True,
     )
 
@@ -83,7 +81,6 @@ class PlayerReport(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
-        server_default=text("now()"),
         nullable=False,
     )
 

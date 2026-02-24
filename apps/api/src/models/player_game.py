@@ -5,8 +5,7 @@ Player Game stats model for Player Passport.
 import uuid
 from datetime import date, datetime, timezone
 
-from sqlalchemy import Date, DateTime, ForeignKey, Integer, String, Text, text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import Date, DateTime, ForeignKey, Integer, String, Text, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.database import Base
@@ -18,13 +17,12 @@ class PlayerGame(Base):
     __tablename__ = "player_games"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        Uuid(as_uuid=True, native_uuid=False),
         primary_key=True,
         default=uuid.uuid4,
-        server_default=text("gen_random_uuid()"),
     )
     player_id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        Uuid(as_uuid=True, native_uuid=False),
         ForeignKey("players.id", ondelete="CASCADE"),
         nullable=False,
         index=True,
@@ -74,7 +72,6 @@ class PlayerGame(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
-        server_default=text("now()"),
         nullable=False,
     )
 

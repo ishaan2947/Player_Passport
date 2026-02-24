@@ -5,8 +5,7 @@ User model for Player Passport.
 import uuid
 from datetime import datetime, timezone
 
-from sqlalchemy import DateTime, String, text
-from sqlalchemy.dialects.postgresql import UUID
+from sqlalchemy import DateTime, String, Uuid
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.core.database import Base
@@ -18,10 +17,9 @@ class User(Base):
     __tablename__ = "users"
 
     id: Mapped[uuid.UUID] = mapped_column(
-        UUID(as_uuid=True),
+        Uuid(as_uuid=True, native_uuid=False),
         primary_key=True,
         default=uuid.uuid4,
-        server_default=text("gen_random_uuid()"),
     )
     clerk_user_id: Mapped[str] = mapped_column(
         String(255),
@@ -36,7 +34,6 @@ class User(Base):
     created_at: Mapped[datetime] = mapped_column(
         DateTime(timezone=True),
         default=lambda: datetime.now(timezone.utc),
-        server_default=text("now()"),
         nullable=False,
     )
 

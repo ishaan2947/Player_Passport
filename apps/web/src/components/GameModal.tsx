@@ -28,7 +28,6 @@ export function GameModal({
     formState: { errors },
     reset,
     watch,
-    setValue,
   } = useForm<GameFormData>({
     resolver: zodResolver(gameSchema),
     defaultValues: {
@@ -109,7 +108,7 @@ export function GameModal({
       game_date: data.game_date,
       opponent: data.opponent,
       game_label: data.game_label || undefined,
-      minutes: data.minutes,
+      minutes: data.minutes ?? undefined,
       pts: data.pts,
       reb: data.reb,
       ast: data.ast,
@@ -125,13 +124,6 @@ export function GameModal({
       notes: data.notes || undefined,
     };
     onSubmit(submitData);
-  }
-
-  function handleNumberChange(field: keyof GameFormData, value: string, onChange: (value: number) => void) {
-    const num = value === "" ? 0 : parseInt(value, 10);
-    if (!isNaN(num) && num >= 0) {
-      onChange(num);
-    }
   }
 
   if (!isOpen) return null;

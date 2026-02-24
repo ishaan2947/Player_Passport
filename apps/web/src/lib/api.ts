@@ -142,9 +142,15 @@ export async function generatePlayerReport(
   }, token);
 }
 
-// Shared Reports (public access via share token)
+// Shared Reports (public access via share token — no auth required)
 export async function getSharedReport(shareToken: string): Promise<PlayerReport & { player: Player }> {
-  return fetchApi<PlayerReport & { player: Player }>(`/players/share/${shareToken}`, {});
+  const response = await fetch(`${API_URL}/players/share/${shareToken}`, {
+    headers: { "Content-Type": "application/json" },
+  });
+  if (!response.ok) {
+    throw new ApiError(response.status, "Report not found");
+  }
+  return response.json();
 }
 
 // User

@@ -62,22 +62,31 @@ Player Passport is designed with trust as the top priority:
 
 - **Player Management**: Create and manage multiple player profiles with customizable information
 - **Game Tracking**: Log individual game statistics with optional notes and context
-- **AI Report Generation**: Generate comprehensive development reports from game data
+- **AI Report Generation**: Generate comprehensive development reports from game data (async, non-blocking)
 - **Report Sharing**: Share reports via secure, tokenized URLs (no account required for viewers)
+- **Season Trend Charts**: Interactive line charts showing PTS, REB, AST, FG%, and more over time with preset views
+- **Goals Tracker**: Set measurable stat goals (PPG, FG%, etc.) and track progress with auto-computed progress bars
+- **Print/PDF Export**: One-click print-optimized report output
 - **Historical Tracking**: View all past reports to track development over time
 - **Demo Mode**: Try the app with pre-populated demo players and game data
 
 ### Production Features
 
 - **Structured JSON Reports**: All AI output validated against strict Pydantic schemas
+- **Async Report Generation**: Non-blocking report generation via BackgroundTasks (HTTP 202)
 - **Caching**: Report generation cached for 1 hour to reduce API costs and improve performance
-- **Rate Limiting**: Protect API endpoints from abuse (60 requests/minute default)
+- **Rate Limiting**: Thread-safe rate limiting with proper headers (60 requests/minute default)
 - **Request Logging**: Structured logging with correlation IDs for request tracing
+- **Security Headers**: HSTS, X-Frame-Options, X-Content-Type-Options, CSP
+- **Input Validation**: Comprehensive game stat validation (FGM<=FGA, future date checks, bounds)
 - **Error Handling**: Comprehensive error handling with user-friendly messages
 - **Timeout & Retries**: OpenAI API calls with 60s timeout and exponential backoff retries
 - **Authentication**: Secure JWT-based auth via Clerk (development bypass available)
-- **CORS Protection**: Configured for production with environment-specific origins
-- **Health Checks**: Database connectivity and service health monitoring
+- **CORS Protection**: Explicit methods/headers with environment-specific origins
+- **Health & Monitoring**: `/health` (returns 503 when unhealthy) + `/status` endpoint
+- **Database Indexes**: Optimized queries with composite and single-column indexes
+- **PWA Support**: Installable web app with manifest and offline-ready config
+- **Test Suite**: Comprehensive pytest suite covering schemas, endpoints, and services
 
 ---
 
@@ -343,7 +352,7 @@ The system calls OpenAI's GPT-4o API with:
 - **Temperature**: 0.7 (balanced creativity/consistency)
 - **Max Tokens**: 4000
 - **Response Format**: `json_object` (ensures valid JSON)
-- **System Prompt**: Versioned prompt file (`player_passport_v1.txt`)
+- **System Prompt**: Versioned prompt file (`player_passport_v2.txt`)
 - **User Message**: Serialized input JSON
 
 **Key Safety Features:**
@@ -659,7 +668,7 @@ When running in development mode, visit:
 │   │   │   ├── services/             # Business logic
 │   │   │   │   ├── player_report_generator.py
 │   │   │   │   └── prompts/          # AI prompt templates
-│   │   │   │       └── player_passport_v1.txt
+│   │   │   │       └── player_passport_v2.txt
 │   │   │   └── core/                 # Core functionality
 │   │   │       ├── auth.py           # JWT verification
 │   │   │       ├── config.py         # Settings management
@@ -686,11 +695,14 @@ When running in development mode, visit:
 │       │   │   │   │       └── reports/
 │       │   │   │   │           └── [reportId]/page.tsx
 │       │   │   │   └── page.tsx
+│       │   │   ├── share/report/[shareToken]/  # Public share page
 │       │   │   ├── layout.tsx
 │       │   │   ├── page.tsx          # Landing page
 │       │   │   └── ...
 │       │   ├── components/           # React components
 │       │   │   ├── ui/               # shadcn/ui components
+│       │   │   ├── SeasonStatsChart.tsx  # Trend charts (recharts)
+│       │   │   ├── GoalsTracker.tsx      # Player goals tracker
 │       │   │   └── ...
 │       │   ├── lib/                  # Utilities
 │       │   │   ├── api.ts            # API client
@@ -704,9 +716,13 @@ When running in development mode, visit:
 │       └── env.local.example
 │
 ├── docker-compose.yml                # Local development stack
+├── .env.example                      # Environment variable template
+├── DEPLOYMENT.md                     # Production deployment guide
+├── PROMPT_CHANGELOG.md               # AI prompt version history
 ├── .github/
 │   └── workflows/
-│       └── ci.yml                    # CI/CD pipeline
+│       ├── ci.yml                    # CI/CD pipeline
+│       └── codeql.yml                # Security analysis
 └── README.md
 ```
 

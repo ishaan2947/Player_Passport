@@ -41,8 +41,8 @@ def is_dev_token(token: str) -> bool:
 
     In production, this always returns False, ensuring no auth bypass is possible.
     """
-    # SECURITY: Strict check - only allow in development environment
-    if not settings.is_development:
+    # SECURITY: Strict check - only allow in development and test environments
+    if not settings.is_development and not settings.is_test:
         return False
 
     return token.startswith(DEV_TOKEN_PREFIX)

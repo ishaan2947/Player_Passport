@@ -8,7 +8,7 @@ from datetime import date, datetime
 from typing import Literal
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, model_validator
 
 
 # ============================================================================
@@ -20,44 +20,74 @@ class PlayerGameCreate(BaseModel):
     """Input for creating a player game record."""
 
     game_date: date
-    opponent: str
-    game_label: str | None = None
-    minutes: int = Field(ge=0, default=0)
-    pts: int = Field(ge=0, default=0)
-    reb: int = Field(ge=0, default=0)
-    ast: int = Field(ge=0, default=0)
-    stl: int = Field(ge=0, default=0)
-    blk: int = Field(ge=0, default=0)
-    tov: int = Field(ge=0, default=0)
-    fgm: int = Field(ge=0, default=0)
-    fga: int = Field(ge=0, default=0)
-    tpm: int = Field(ge=0, default=0)
-    tpa: int = Field(ge=0, default=0)
-    ftm: int = Field(ge=0, default=0)
-    fta: int = Field(ge=0, default=0)
-    notes: str | None = None
+    opponent: str = Field(min_length=1, max_length=255)
+    game_label: str | None = Field(default=None, max_length=100)
+    minutes: int = Field(ge=0, le=60, default=0)
+    pts: int = Field(ge=0, le=150, default=0)
+    reb: int = Field(ge=0, le=50, default=0)
+    ast: int = Field(ge=0, le=50, default=0)
+    stl: int = Field(ge=0, le=30, default=0)
+    blk: int = Field(ge=0, le=30, default=0)
+    tov: int = Field(ge=0, le=30, default=0)
+    fgm: int = Field(ge=0, le=60, default=0)
+    fga: int = Field(ge=0, le=60, default=0)
+    tpm: int = Field(ge=0, le=30, default=0)
+    tpa: int = Field(ge=0, le=40, default=0)
+    ftm: int = Field(ge=0, le=40, default=0)
+    fta: int = Field(ge=0, le=40, default=0)
+    notes: str | None = Field(default=None, max_length=1000)
+
+    @model_validator(mode="after")
+    def validate_shooting_stats(self) -> "PlayerGameCreate":
+        """Ensure shooting stats are logically consistent."""
+        if self.fgm > self.fga:
+            raise ValueError("Field goals made (fgm) cannot exceed field goals attempted (fga)")
+        if self.tpm > self.tpa:
+            raise ValueError("Three pointers made (tpm) cannot exceed three pointers attempted (tpa)")
+        if self.ftm > self.fta:
+            raise ValueError("Free throws made (ftm) cannot exceed free throws attempted (fta)")
+        if self.tpa > self.fga:
+            raise ValueError("Three point attempts (tpa) cannot exceed total field goal attempts (fga)")
+        if self.game_date > date.today():
+            raise ValueError("Game date cannot be in the future")
+        return self
 
 
 class PlayerGameUpdate(BaseModel):
     """Input for updating a player game record."""
 
     game_date: date | None = None
-    opponent: str | None = None
-    game_label: str | None = None
-    minutes: int | None = Field(ge=0, default=None)
-    pts: int | None = Field(ge=0, default=None)
-    reb: int | None = Field(ge=0, default=None)
-    ast: int | None = Field(ge=0, default=None)
-    stl: int | None = Field(ge=0, default=None)
-    blk: int | None = Field(ge=0, default=None)
-    tov: int | None = Field(ge=0, default=None)
-    fgm: int | None = Field(ge=0, default=None)
-    fga: int | None = Field(ge=0, default=None)
-    tpm: int | None = Field(ge=0, default=None)
-    tpa: int | None = Field(ge=0, default=None)
-    ftm: int | None = Field(ge=0, default=None)
-    fta: int | None = Field(ge=0, default=None)
-    notes: str | None = None
+    opponent: str | None = Field(default=None, min_length=1, max_length=255)
+    game_label: str | None = Field(default=None, max_length=100)
+    minutes: int | None = Field(ge=0, le=60, default=None)
+    pts: int | None = Field(ge=0, le=150, default=None)
+    reb: int | None = Field(ge=0, le=50, default=None)
+    ast: int | None = Field(ge=0, le=50, default=None)
+    stl: int | None = Field(ge=0, le=30, default=None)
+    blk: int | None = Field(ge=0, le=30, default=None)
+    tov: int | None = Field(ge=0, le=30, default=None)
+    fgm: int | None = Field(ge=0, le=60, default=None)
+    fga: int | None = Field(ge=0, le=60, default=None)
+    tpm: int | None = Field(ge=0, le=30, default=None)
+    tpa: int | None = Field(ge=0, le=40, default=None)
+    ftm: int | None = Field(ge=0, le=40, default=None)
+    fta: int | None = Field(ge=0, le=40, default=None)
+    notes: str | None = Field(default=None, max_length=1000)
+
+    @model_validator(mode="after")
+    def validate_shooting_stats(self) -> "PlayerGameUpdate":
+        """Ensure shooting stats are logically consistent when provided."""
+        if self.fgm is not None and self.fga is not None and self.fgm > self.fga:
+            raise ValueError("Field goals made (fgm) cannot exceed field goals attempted (fga)")
+        if self.tpm is not None and self.tpa is not None and self.tpm > self.tpa:
+            raise ValueError("Three pointers made (tpm) cannot exceed three pointers attempted (tpa)")
+        if self.ftm is not None and self.fta is not None and self.ftm > self.fta:
+            raise ValueError("Free throws made (ftm) cannot exceed free throws attempted (fta)")
+        if self.tpa is not None and self.fga is not None and self.tpa > self.fga:
+            raise ValueError("Three point attempts (tpa) cannot exceed total field goal attempts (fga)")
+        if self.game_date is not None and self.game_date > date.today():
+            raise ValueError("Game date cannot be in the future")
+        return self
 
 
 class PlayerGameResponse(BaseModel):

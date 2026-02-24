@@ -300,7 +300,7 @@ export default function Home() {
               <Link href="mailto:hello@playerpassport.io" className="hover:text-foreground">Contact</Link>
             </nav>
             <p className="text-sm text-muted-foreground">
-              © 2024 Player Passport
+              © 2025 Player Passport
             </p>
           </div>
         </div>
