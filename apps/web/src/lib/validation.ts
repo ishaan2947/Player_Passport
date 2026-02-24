@@ -3,8 +3,8 @@ import { z } from "zod";
 // Player form validation schema
 export const playerSchema = z.object({
   name: z.string().min(1, "Name is required").max(255, "Name must be less than 255 characters"),
-  grade: z.string().optional(),
-  position: z.string().optional(),
+  grade: z.string().min(1, "Grade is required"),
+  position: z.string().min(1, "Position is required"),
   height: z.string().optional(),
   team: z.string().optional(),
   goals: z.array(z.string()).optional().default([]),
