@@ -10,6 +10,7 @@ import { ErrorBoundary } from "@/components/error-boundary";
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: HomeIcon },
   { name: "Players", href: "/dashboard/players", icon: PlayerIcon },
+  { name: "Compare", href: "/dashboard/compare", icon: CompareIcon },
 ];
 
 function HomeIcon({ className }: { className?: string }) {
@@ -25,6 +26,14 @@ function PlayerIcon({ className }: { className?: string }) {
   return (
     <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
       <path strokeLinecap="round" strokeLinejoin="round" d="M15.75 6a3.75 3.75 0 1 1-7.5 0 3.75 3.75 0 0 1 7.5 0ZM4.501 20.118a7.5 7.5 0 0 1 14.998 0A17.933 17.933 0 0 1 12 21.75c-2.676 0-5.216-.584-7.499-1.632Z" />
+    </svg>
+  );
+}
+
+function CompareIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor">
+      <path strokeLinecap="round" strokeLinejoin="round" d="M7.5 21 3 12m0 0 4.5-9M3 12h13.5m0 0L12 3m4.5 9-4.5 9m0 0H21" />
     </svg>
   );
 }

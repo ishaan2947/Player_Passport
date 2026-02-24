@@ -31,6 +31,9 @@ const SeasonStatsChart = dynamic(() => import("@/components/SeasonStatsChart").t
 const GoalsTracker = dynamic(() => import("@/components/GoalsTracker").then((mod) => ({ default: mod.GoalsTracker })), {
   ssr: false,
 });
+const MilestoneBadges = dynamic(() => import("@/components/MilestoneBadges").then((mod) => ({ default: mod.MilestoneBadges })), {
+  ssr: false,
+});
 import {
   AlertDialog,
   AlertDialogContent,
@@ -260,6 +263,7 @@ export default function PlayerDetailPage() {
   const [isAddingGame, setIsAddingGame] = useState(false);
   const [isUpdatingGame, setIsUpdatingGame] = useState(false);
   const [isGeneratingReport, setIsGeneratingReport] = useState(false);
+  const [reportGenStep, setReportGenStep] = useState(0);
   const [showEditPlayerModal, setShowEditPlayerModal] = useState(false);
   const [isUpdatingPlayer, setIsUpdatingPlayer] = useState(false);
 
@@ -371,6 +375,14 @@ export default function PlayerDetailPage() {
     }
   }
 
+  const REPORT_GEN_STEPS = [
+    "Analyzing game data...",
+    "Identifying performance patterns...",
+    "Generating coaching insights...",
+    "Crafting your development report...",
+    "Almost there...",
+  ];
+
   async function handleGenerateReport() {
     if (!player) return;
     if (player.games.length < 3) {
@@ -379,31 +391,40 @@ export default function PlayerDetailPage() {
     }
 
     setIsGeneratingReport(true);
+    setReportGenStep(0);
+
+    // Cycle through steps every 4s while generating
+    let stepTimer: ReturnType<typeof setInterval> | null = null;
+    stepTimer = setInterval(() => {
+      setReportGenStep((s) => (s + 1) % REPORT_GEN_STEPS.length);
+    }, 4000);
+
     try {
-      // Take the most recent 5 games for the report
       const recentGames = player.games
         .slice()
         .sort((a, b) => new Date(b.game_date).getTime() - new Date(a.game_date).getTime())
         .slice(0, 5);
-      
+
       const response = await generatePlayerReport(playerId, {
         game_ids: recentGames.map((g) => g.id),
       });
-      toast.success("Report generation started!", { description: "This usually takes 10-20 seconds." });
 
-      // Poll with exponential backoff and timeout
       let attempt = 0;
-      const maxAttempts = 30; // ~2 minutes max
+      const maxAttempts = 40;
       const checkReport = async () => {
         attempt++;
         if (attempt > maxAttempts) {
-          toast.error("Report is taking longer than expected", { description: "Check back later." });
+          if (stepTimer) clearInterval(stepTimer);
+          setIsGeneratingReport(false);
+          toast.error("Report is taking longer than expected", { description: "Check back later — it will appear in your reports list." });
           await loadPlayer();
           return;
         }
         try {
           const report = await getPlayerReportByPlayerId(playerId, response.id);
           if (report.status === "completed" || report.status === "failed") {
+            if (stepTimer) clearInterval(stepTimer);
+            setIsGeneratingReport(false);
             await loadPlayer();
             if (report.status === "completed") {
               toast.success("Report ready!", { description: "Your development report is now available." });
@@ -412,19 +433,21 @@ export default function PlayerDetailPage() {
               toast.error("Report generation failed", { description: report.error_text || "Unknown error" });
             }
           } else {
-            const delay = Math.min(2000 * Math.pow(1.3, attempt - 1), 10000);
+            const delay = Math.min(2000 * Math.pow(1.3, attempt - 1), 8000);
             setTimeout(checkReport, delay);
           }
         } catch {
+          if (stepTimer) clearInterval(stepTimer);
+          setIsGeneratingReport(false);
           await loadPlayer();
         }
       };
       setTimeout(checkReport, 2000);
     } catch (e) {
+      if (stepTimer) clearInterval(stepTimer);
+      setIsGeneratingReport(false);
       const message = e instanceof Error ? e.message : "Failed to generate report";
       toast.error("Failed to generate report", { description: message });
-    } finally {
-      setIsGeneratingReport(false);
     }
   }
 
@@ -515,6 +538,46 @@ export default function PlayerDetailPage() {
         <div className="mb-8 space-y-6">
           <SeasonStatsChart games={games} />
           <GoalsTracker playerId={playerId} games={games} />
+          <MilestoneBadges games={games} reports={reports} />
+          {/* Practice Plan from latest completed report */}
+          {(() => {
+            const latestReport = reports
+              .filter((r) => r.status === "completed" && r.report_json?.drill_plan?.length)
+              .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime())[0];
+            if (!latestReport) return null;
+            const drills = latestReport.report_json!.drill_plan;
+            return (
+              <div className="rounded-xl border border-border bg-card p-4 md:p-6">
+                <div className="mb-4 flex items-center justify-between">
+                  <div>
+                    <h3 className="text-lg font-semibold">Practice Plan</h3>
+                    <p className="text-xs text-muted-foreground">
+                      From report · {new Date(latestReport.created_at).toLocaleDateString("en-US", { month: "short", day: "numeric" })}
+                    </p>
+                  </div>
+                  <Link
+                    href={`/dashboard/players/${playerId}/reports/${latestReport.id}`}
+                    className="rounded-lg border border-border px-3 py-1.5 text-xs font-medium text-muted-foreground hover:bg-secondary hover:text-foreground transition-colors"
+                  >
+                    Full Report
+                  </Link>
+                </div>
+                <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+                  {drills.slice(0, 6).map((drill, i) => (
+                    <div key={i} className="rounded-lg border border-border bg-secondary/20 p-3">
+                      <p className="font-semibold text-sm text-orange-500">{drill.title}</p>
+                      <p className="mt-1 text-xs text-muted-foreground line-clamp-2">{drill.why_this_drill}</p>
+                      <div className="mt-2 flex flex-wrap gap-1">
+                        <span className="rounded-full bg-secondary px-2 py-0.5 text-xs text-muted-foreground">
+                          {drill.frequency}
+                        </span>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            );
+          })()}
         </div>
       )}
 
@@ -582,31 +645,46 @@ export default function PlayerDetailPage() {
           <h2 className="mb-4 text-lg font-semibold">Development Reports</h2>
 
           {/* Generate Report Card */}
-          <div className="mb-4 rounded-xl border border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-amber-500/10 p-4">
-            <h3 className="font-semibold">Generate AI Report</h3>
-            <p className="mt-1 text-sm text-muted-foreground">
-              {games.length < 3
-                ? `Add ${3 - games.length} more game(s) to generate a development report.`
-                : "Analyze recent games and get personalized coaching insights."}
-            </p>
-            <button
-              onClick={handleGenerateReport}
-              disabled={games.length < 3 || isGeneratingReport}
-              className="mt-3 w-full rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-2.5 text-sm font-semibold text-white disabled:opacity-50"
-            >
-              {isGeneratingReport ? (
-                <span className="flex items-center justify-center gap-2">
-                  <svg className="h-4 w-4 animate-spin" viewBox="0 0 24 24">
-                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" fill="none" />
+          {isGeneratingReport ? (
+            <div className="mb-4 rounded-xl border border-orange-500/30 bg-gradient-to-br from-orange-500/10 to-amber-500/10 p-4">
+              <div className="flex items-center gap-3 mb-3">
+                <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-orange-500/20">
+                  <svg className="h-4 w-4 animate-spin text-orange-500" viewBox="0 0 24 24" fill="none">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4" />
                     <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4z" />
                   </svg>
-                  Generating...
-                </span>
-              ) : (
-                "Generate Report"
-              )}
-            </button>
-          </div>
+                </div>
+                <div>
+                  <p className="font-semibold text-sm">Generating AI Report</p>
+                  <p className="text-xs text-muted-foreground">Usually 15–25 seconds</p>
+                </div>
+              </div>
+              {/* Animated progress bar */}
+              <div className="mb-3 h-1.5 w-full overflow-hidden rounded-full bg-orange-500/20">
+                <div className="h-full animate-[progress_2s_ease-in-out_infinite] rounded-full bg-gradient-to-r from-orange-500 to-amber-400" />
+              </div>
+              {/* Cycling step text */}
+              <p className="text-center text-xs text-muted-foreground animate-pulse">
+                {REPORT_GEN_STEPS[reportGenStep]}
+              </p>
+            </div>
+          ) : (
+            <div className="mb-4 rounded-xl border border-orange-500/20 bg-gradient-to-br from-orange-500/10 to-amber-500/10 p-4">
+              <h3 className="font-semibold">Generate AI Report</h3>
+              <p className="mt-1 text-sm text-muted-foreground">
+                {games.length < 3
+                  ? `Add ${3 - games.length} more game(s) to generate a development report.`
+                  : "Analyze recent games and get personalized coaching insights."}
+              </p>
+              <button
+                onClick={handleGenerateReport}
+                disabled={games.length < 3}
+                className="mt-3 w-full rounded-lg bg-gradient-to-r from-orange-500 to-amber-500 px-4 py-2.5 text-sm font-semibold text-white transition-all hover:shadow-lg hover:shadow-orange-500/25 disabled:opacity-50 disabled:cursor-not-allowed"
+              >
+                Generate Report
+              </button>
+            </div>
+          )}
 
           {/* Previous Reports */}
           {reports.length > 0 ? (

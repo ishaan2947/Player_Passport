@@ -592,9 +592,9 @@ async def seed_demo_players(
     """Seed 5 diverse demo players with realistic game data for testing AI reports."""
     from datetime import date, timedelta
 
-    # 5 Unique Test Cases with different profiles and stat patterns
+    # 5 Unique demo players — 10+ games each for full feature showcase
     demo_players = [
-        # TEST CASE 1: High-scoring shooting guard - consistent scorer, good efficiency
+        # PLAYER 1: High-scoring SG — hot hand streak, scoring badges, 10-game veteran
         {
             "name": "Jordan Mitchell",
             "grade": "Junior",
@@ -606,33 +606,45 @@ async def seed_demo_players(
             "role": "Starting shooting guard, primary scorer",
             "coach_notes": "Jordan is our go-to scorer. Great shooter, needs to improve defense.",
             "games": [
-                {"opponent": "North Valley", "pts": 24, "reb": 4, "ast": 3, "stl": 1, "blk": 0, "tov": 2, "fgm": 9, "fga": 16, "tpm": 4, "tpa": 8, "ftm": 2, "fta": 2, "minutes": 32},
-                {"opponent": "South Central", "pts": 28, "reb": 5, "ast": 2, "stl": 2, "blk": 0, "tov": 3, "fgm": 10, "fga": 18, "tpm": 5, "tpa": 10, "ftm": 3, "fta": 4, "minutes": 34},
-                {"opponent": "West Lake", "pts": 19, "reb": 3, "ast": 4, "stl": 1, "blk": 1, "tov": 2, "fgm": 7, "fga": 14, "tpm": 3, "tpa": 7, "ftm": 2, "fta": 2, "minutes": 30},
-                {"opponent": "Metro Prep", "pts": 22, "reb": 4, "ast": 3, "stl": 3, "blk": 0, "tov": 1, "fgm": 8, "fga": 15, "tpm": 4, "tpa": 9, "ftm": 2, "fta": 3, "minutes": 31},
-                {"opponent": "Tech Academy", "pts": 26, "reb": 6, "ast": 2, "stl": 2, "blk": 0, "tov": 2, "fgm": 9, "fga": 17, "tpm": 5, "tpa": 11, "ftm": 3, "fta": 4, "minutes": 33},
+                {"opponent": "North Valley",    "pts": 24, "reb": 4, "ast": 3, "stl": 1, "blk": 0, "tov": 2, "fgm": 9,  "fga": 16, "tpm": 4, "tpa": 8,  "ftm": 2, "fta": 2, "minutes": 32},
+                {"opponent": "South Central",   "pts": 28, "reb": 5, "ast": 2, "stl": 2, "blk": 0, "tov": 3, "fgm": 10, "fga": 18, "tpm": 5, "tpa": 10, "ftm": 3, "fta": 4, "minutes": 34},
+                {"opponent": "West Lake",       "pts": 19, "reb": 3, "ast": 4, "stl": 1, "blk": 1, "tov": 2, "fgm": 7,  "fga": 14, "tpm": 3, "tpa": 7,  "ftm": 2, "fta": 2, "minutes": 30},
+                {"opponent": "Metro Prep",      "pts": 22, "reb": 4, "ast": 3, "stl": 3, "blk": 0, "tov": 1, "fgm": 8,  "fga": 15, "tpm": 4, "tpa": 9,  "ftm": 2, "fta": 3, "minutes": 31},
+                {"opponent": "Tech Academy",    "pts": 26, "reb": 6, "ast": 2, "stl": 2, "blk": 0, "tov": 2, "fgm": 9,  "fga": 17, "tpm": 5, "tpa": 11, "ftm": 3, "fta": 4, "minutes": 33},
+                {"opponent": "Franklin HS",     "pts": 31, "reb": 5, "ast": 3, "stl": 2, "blk": 0, "tov": 2, "fgm": 11, "fga": 19, "tpm": 6, "tpa": 12, "ftm": 3, "fta": 4, "minutes": 35},
+                {"opponent": "Riverside Prep",  "pts": 25, "reb": 4, "ast": 4, "stl": 1, "blk": 0, "tov": 1, "fgm": 9,  "fga": 16, "tpm": 5, "tpa": 10, "ftm": 2, "fta": 3, "minutes": 33},
+                {"opponent": "Oak Hills",       "pts": 23, "reb": 3, "ast": 3, "stl": 2, "blk": 0, "tov": 2, "fgm": 8,  "fga": 15, "tpm": 4, "tpa": 9,  "ftm": 3, "fta": 3, "minutes": 32},
+                {"opponent": "Central HS",      "pts": 27, "reb": 5, "ast": 2, "stl": 1, "blk": 0, "tov": 1, "fgm": 10, "fga": 17, "tpm": 5, "tpa": 10, "ftm": 2, "fta": 2, "minutes": 34},
+                {"opponent": "Valley High",     "pts": 33, "reb": 4, "ast": 3, "stl": 3, "blk": 0, "tov": 2, "fgm": 12, "fga": 20, "tpm": 6, "tpa": 12, "ftm": 3, "fta": 3, "minutes": 36},
+                {"opponent": "Summit Academy",  "pts": 20, "reb": 6, "ast": 4, "stl": 2, "blk": 1, "tov": 2, "fgm": 7,  "fga": 14, "tpm": 4, "tpa": 8,  "ftm": 2, "fta": 2, "minutes": 30},
             ],
         },
-        # TEST CASE 2: Playmaking point guard - high assists, turnover prone
+        # PLAYER 2: Playmaking PG — triple-double, assists leader, working on TOV
         {
             "name": "Marcus Chen",
             "grade": "Sophomore",
             "position": "PG",
             "height": "5'11\"",
             "team": "Riverside Academy",
-            "goals": ["Reduce turnovers", "Make varsity", "Improve leadership"],
+            "goals": ["Reduce turnovers to under 3 per game", "Make varsity", "Improve leadership"],
             "competition_level": "JV",
             "role": "Starting point guard, floor general",
             "coach_notes": "Marcus sees the floor well but turns it over too much trying to make highlight passes.",
             "games": [
-                {"opponent": "Lincoln High", "pts": 8, "reb": 3, "ast": 9, "stl": 2, "blk": 0, "tov": 5, "fgm": 3, "fga": 8, "tpm": 1, "tpa": 3, "ftm": 1, "fta": 2, "minutes": 28},
-                {"opponent": "Oak Valley", "pts": 12, "reb": 2, "ast": 11, "stl": 3, "blk": 0, "tov": 6, "fgm": 5, "fga": 10, "tpm": 2, "tpa": 5, "ftm": 0, "fta": 0, "minutes": 30},
-                {"opponent": "Central Prep", "pts": 6, "reb": 4, "ast": 8, "stl": 1, "blk": 0, "tov": 4, "fgm": 2, "fga": 7, "tpm": 1, "tpa": 4, "ftm": 1, "fta": 2, "minutes": 26},
-                {"opponent": "St. Mary's", "pts": 10, "reb": 3, "ast": 10, "stl": 4, "blk": 0, "tov": 5, "fgm": 4, "fga": 9, "tpm": 2, "tpa": 5, "ftm": 0, "fta": 1, "minutes": 29},
-                {"opponent": "North Valley", "pts": 14, "reb": 2, "ast": 7, "stl": 2, "blk": 0, "tov": 3, "fgm": 5, "fga": 11, "tpm": 2, "tpa": 6, "ftm": 2, "fta": 2, "minutes": 31},
+                {"opponent": "Lincoln High",    "pts": 8,  "reb": 3, "ast": 9,  "stl": 2, "blk": 0, "tov": 5, "fgm": 3, "fga": 8,  "tpm": 1, "tpa": 3, "ftm": 1, "fta": 2, "minutes": 28},
+                {"opponent": "Oak Valley",      "pts": 12, "reb": 2, "ast": 11, "stl": 3, "blk": 0, "tov": 6, "fgm": 5, "fga": 10, "tpm": 2, "tpa": 5, "ftm": 0, "fta": 0, "minutes": 30},
+                {"opponent": "Central Prep",    "pts": 6,  "reb": 4, "ast": 8,  "stl": 1, "blk": 0, "tov": 4, "fgm": 2, "fga": 7,  "tpm": 1, "tpa": 4, "ftm": 1, "fta": 2, "minutes": 26},
+                {"opponent": "St. Mary's",      "pts": 10, "reb": 3, "ast": 10, "stl": 4, "blk": 0, "tov": 5, "fgm": 4, "fga": 9,  "tpm": 2, "tpa": 5, "ftm": 0, "fta": 1, "minutes": 29},
+                {"opponent": "North Valley",    "pts": 14, "reb": 2, "ast": 7,  "stl": 2, "blk": 0, "tov": 3, "fgm": 5, "fga": 11, "tpm": 2, "tpa": 6, "ftm": 2, "fta": 2, "minutes": 31},
+                {"opponent": "East Prep",       "pts": 11, "reb": 4, "ast": 12, "stl": 3, "blk": 0, "tov": 4, "fgm": 4, "fga": 9,  "tpm": 2, "tpa": 5, "ftm": 1, "fta": 2, "minutes": 30},
+                {"opponent": "Lakeside HS",     "pts": 9,  "reb": 3, "ast": 9,  "stl": 2, "blk": 0, "tov": 3, "fgm": 3, "fga": 8,  "tpm": 1, "tpa": 4, "ftm": 2, "fta": 3, "minutes": 28},
+                {"opponent": "Metro Academy",   "pts": 13, "reb": 5, "ast": 10, "stl": 3, "blk": 0, "tov": 2, "fgm": 5, "fga": 10, "tpm": 2, "tpa": 5, "ftm": 1, "fta": 1, "minutes": 32},
+                {"opponent": "Franklin JV",     "pts": 10, "reb": 11,"ast": 10, "stl": 2, "blk": 0, "tov": 3, "fgm": 4, "fga": 9,  "tpm": 2, "tpa": 4, "ftm": 0, "fta": 1, "minutes": 31},
+                {"opponent": "South Prep",      "pts": 16, "reb": 3, "ast": 8,  "stl": 2, "blk": 0, "tov": 2, "fgm": 6, "fga": 12, "tpm": 3, "tpa": 7, "ftm": 1, "fta": 1, "minutes": 33},
+                {"opponent": "West Valley",     "pts": 12, "reb": 4, "ast": 9,  "stl": 3, "blk": 0, "tov": 2, "fgm": 5, "fga": 10, "tpm": 2, "tpa": 5, "ftm": 0, "fta": 0, "minutes": 29},
             ],
         },
-        # TEST CASE 3: Defensive-minded wing - low scoring, great steals/blocks
+        # PLAYER 3: Defensive SF — lockdown badge, rim protector, steals leader
         {
             "name": "Isaiah Brooks",
             "grade": "Senior",
@@ -644,55 +656,73 @@ async def seed_demo_players(
             "role": "Defensive stopper, guards best opposing player",
             "coach_notes": "Isaiah is our lockdown defender. Would love to see him score more off steals.",
             "games": [
-                {"opponent": "South Academy", "pts": 6, "reb": 7, "ast": 2, "stl": 4, "blk": 3, "tov": 1, "fgm": 2, "fga": 6, "tpm": 0, "tpa": 2, "ftm": 2, "fta": 4, "minutes": 32},
-                {"opponent": "East Central", "pts": 8, "reb": 9, "ast": 3, "stl": 5, "blk": 2, "tov": 1, "fgm": 3, "fga": 7, "tpm": 1, "tpa": 2, "ftm": 1, "fta": 2, "minutes": 34},
-                {"opponent": "Metro Tech", "pts": 4, "reb": 8, "ast": 1, "stl": 3, "blk": 4, "tov": 2, "fgm": 1, "fga": 5, "tpm": 0, "tpa": 1, "ftm": 2, "fta": 4, "minutes": 30},
-                {"opponent": "Lincoln High", "pts": 10, "reb": 6, "ast": 2, "stl": 4, "blk": 2, "tov": 0, "fgm": 4, "fga": 8, "tpm": 1, "tpa": 3, "ftm": 1, "fta": 2, "minutes": 33},
-                {"opponent": "Oak Valley", "pts": 7, "reb": 10, "ast": 3, "stl": 6, "blk": 3, "tov": 1, "fgm": 2, "fga": 6, "tpm": 0, "tpa": 2, "ftm": 3, "fta": 4, "minutes": 35},
+                {"opponent": "South Academy",   "pts": 6,  "reb": 7,  "ast": 2, "stl": 4, "blk": 3, "tov": 1, "fgm": 2, "fga": 6,  "tpm": 0, "tpa": 2, "ftm": 2, "fta": 4, "minutes": 32},
+                {"opponent": "East Central",    "pts": 8,  "reb": 9,  "ast": 3, "stl": 5, "blk": 2, "tov": 1, "fgm": 3, "fga": 7,  "tpm": 1, "tpa": 2, "ftm": 1, "fta": 2, "minutes": 34},
+                {"opponent": "Metro Tech",      "pts": 4,  "reb": 8,  "ast": 1, "stl": 3, "blk": 4, "tov": 2, "fgm": 1, "fga": 5,  "tpm": 0, "tpa": 1, "ftm": 2, "fta": 4, "minutes": 30},
+                {"opponent": "Lincoln High",    "pts": 10, "reb": 6,  "ast": 2, "stl": 4, "blk": 2, "tov": 0, "fgm": 4, "fga": 8,  "tpm": 1, "tpa": 3, "ftm": 1, "fta": 2, "minutes": 33},
+                {"opponent": "Oak Valley",      "pts": 7,  "reb": 10, "ast": 3, "stl": 6, "blk": 3, "tov": 1, "fgm": 2, "fga": 6,  "tpm": 0, "tpa": 2, "ftm": 3, "fta": 4, "minutes": 35},
+                {"opponent": "Tech Prep",       "pts": 9,  "reb": 8,  "ast": 2, "stl": 4, "blk": 4, "tov": 1, "fgm": 3, "fga": 7,  "tpm": 1, "tpa": 2, "ftm": 2, "fta": 3, "minutes": 33},
+                {"opponent": "Riverside HS",    "pts": 11, "reb": 7,  "ast": 4, "stl": 3, "blk": 3, "tov": 0, "fgm": 4, "fga": 8,  "tpm": 1, "tpa": 3, "ftm": 2, "fta": 3, "minutes": 32},
+                {"opponent": "North Academy",   "pts": 5,  "reb": 9,  "ast": 2, "stl": 5, "blk": 4, "tov": 1, "fgm": 2, "fga": 5,  "tpm": 0, "tpa": 1, "ftm": 1, "fta": 3, "minutes": 31},
+                {"opponent": "Franklin Varsity","pts": 8,  "reb": 11, "ast": 3, "stl": 4, "blk": 3, "tov": 0, "fgm": 3, "fga": 7,  "tpm": 0, "tpa": 2, "ftm": 2, "fta": 4, "minutes": 34},
+                {"opponent": "Summit Varsity",  "pts": 12, "reb": 8,  "ast": 3, "stl": 5, "blk": 2, "tov": 1, "fgm": 5, "fga": 9,  "tpm": 1, "tpa": 3, "ftm": 1, "fta": 2, "minutes": 34},
+                {"opponent": "Valley Warriors", "pts": 14, "reb": 7,  "ast": 4, "stl": 4, "blk": 3, "tov": 1, "fgm": 5, "fga": 9,  "tpm": 1, "tpa": 3, "ftm": 3, "fta": 4, "minutes": 35},
             ],
         },
-        # TEST CASE 4: Dominant big man - rebounds, blocks, limited range
+        # PLAYER 4: Dominant C — double-doubles every game, rim protector
         {
             "name": "DeShawn Williams",
             "grade": "Junior",
             "position": "C",
             "height": "6'8\"",
             "team": "Central High",
-            "goals": ["Average double-double", "Improve free throws", "Get stronger"],
+            "goals": ["Average double-double", "Improve free throws to 70%+", "Get stronger in the post"],
             "competition_level": "Varsity",
             "role": "Starting center, rim protector",
             "coach_notes": "DeShawn dominates inside but struggles at the free throw line. Working on mid-range.",
             "games": [
-                {"opponent": "West Prep", "pts": 14, "reb": 12, "ast": 1, "stl": 0, "blk": 4, "tov": 2, "fgm": 6, "fga": 10, "tpm": 0, "tpa": 0, "ftm": 2, "fta": 6, "minutes": 28},
-                {"opponent": "North Tech", "pts": 12, "reb": 14, "ast": 2, "stl": 1, "blk": 5, "tov": 3, "fgm": 5, "fga": 9, "tpm": 0, "tpa": 0, "ftm": 2, "fta": 5, "minutes": 30},
-                {"opponent": "East Valley", "pts": 16, "reb": 11, "ast": 0, "stl": 0, "blk": 3, "tov": 2, "fgm": 7, "fga": 11, "tpm": 0, "tpa": 1, "ftm": 2, "fta": 4, "minutes": 27},
-                {"opponent": "Metro Academy", "pts": 10, "reb": 15, "ast": 3, "stl": 1, "blk": 6, "tov": 1, "fgm": 4, "fga": 8, "tpm": 0, "tpa": 0, "ftm": 2, "fta": 6, "minutes": 31},
-                {"opponent": "South Central", "pts": 18, "reb": 13, "ast": 1, "stl": 0, "blk": 4, "tov": 2, "fgm": 8, "fga": 12, "tpm": 0, "tpa": 0, "ftm": 2, "fta": 5, "minutes": 29},
+                {"opponent": "West Prep",       "pts": 14, "reb": 12, "ast": 1, "stl": 0, "blk": 4, "tov": 2, "fgm": 6,  "fga": 10, "tpm": 0, "tpa": 0, "ftm": 2, "fta": 6, "minutes": 28},
+                {"opponent": "North Tech",      "pts": 12, "reb": 14, "ast": 2, "stl": 1, "blk": 5, "tov": 3, "fgm": 5,  "fga": 9,  "tpm": 0, "tpa": 0, "ftm": 2, "fta": 5, "minutes": 30},
+                {"opponent": "East Valley",     "pts": 16, "reb": 11, "ast": 0, "stl": 0, "blk": 3, "tov": 2, "fgm": 7,  "fga": 11, "tpm": 0, "tpa": 1, "ftm": 2, "fta": 4, "minutes": 27},
+                {"opponent": "Metro Academy",   "pts": 10, "reb": 15, "ast": 3, "stl": 1, "blk": 6, "tov": 1, "fgm": 4,  "fga": 8,  "tpm": 0, "tpa": 0, "ftm": 2, "fta": 6, "minutes": 31},
+                {"opponent": "South Central",   "pts": 18, "reb": 13, "ast": 1, "stl": 0, "blk": 4, "tov": 2, "fgm": 8,  "fga": 12, "tpm": 0, "tpa": 0, "ftm": 2, "fta": 5, "minutes": 29},
+                {"opponent": "Franklin HS",     "pts": 20, "reb": 10, "ast": 2, "stl": 0, "blk": 5, "tov": 2, "fgm": 9,  "fga": 13, "tpm": 0, "tpa": 0, "ftm": 2, "fta": 6, "minutes": 30},
+                {"opponent": "Oak Prep",        "pts": 13, "reb": 12, "ast": 1, "stl": 1, "blk": 4, "tov": 1, "fgm": 5,  "fga": 9,  "tpm": 0, "tpa": 0, "ftm": 3, "fta": 5, "minutes": 28},
+                {"opponent": "Riverside HS",    "pts": 22, "reb": 14, "ast": 2, "stl": 0, "blk": 6, "tov": 2, "fgm": 10, "fga": 14, "tpm": 0, "tpa": 0, "ftm": 2, "fta": 6, "minutes": 32},
+                {"opponent": "North Valley",    "pts": 15, "reb": 13, "ast": 1, "stl": 1, "blk": 4, "tov": 2, "fgm": 7,  "fga": 11, "tpm": 0, "tpa": 0, "ftm": 1, "fta": 4, "minutes": 29},
+                {"opponent": "Summit HS",       "pts": 17, "reb": 15, "ast": 2, "stl": 0, "blk": 5, "tov": 1, "fgm": 8,  "fga": 12, "tpm": 0, "tpa": 0, "ftm": 1, "fta": 5, "minutes": 30},
+                {"opponent": "Valley High",     "pts": 19, "reb": 11, "ast": 1, "stl": 0, "blk": 3, "tov": 2, "fgm": 8,  "fga": 12, "tpm": 0, "tpa": 0, "ftm": 3, "fta": 6, "minutes": 31},
             ],
         },
-        # TEST CASE 5: Developing freshman - inconsistent, shows flashes
+        # PLAYER 5: Developing freshman — improvement arc, early milestones
         {
             "name": "Tyler Rodriguez",
             "grade": "Freshman",
             "position": "SG",
             "height": "5'9\"",
             "team": "Valley View High",
-            "goals": ["Make JV team", "Improve shooting", "Get more confident"],
+            "goals": ["Make JV team", "Improve shooting to 40%+ FG", "Get more confident on the floor"],
             "competition_level": "Freshman",
             "role": "Developing guard, learning the system",
             "coach_notes": "Tyler has potential but is inconsistent. Great attitude, needs more reps.",
             "games": [
-                {"opponent": "North Freshman", "pts": 4, "reb": 1, "ast": 2, "stl": 1, "blk": 0, "tov": 3, "fgm": 1, "fga": 6, "tpm": 0, "tpa": 3, "ftm": 2, "fta": 4, "minutes": 14},
-                {"opponent": "East JV", "pts": 12, "reb": 3, "ast": 3, "stl": 2, "blk": 0, "tov": 2, "fgm": 5, "fga": 10, "tpm": 2, "tpa": 5, "ftm": 0, "fta": 0, "minutes": 20},
-                {"opponent": "South Freshman", "pts": 6, "reb": 2, "ast": 1, "stl": 0, "blk": 0, "tov": 4, "fgm": 2, "fga": 8, "tpm": 1, "tpa": 4, "ftm": 1, "fta": 2, "minutes": 16},
-                {"opponent": "West JV", "pts": 8, "reb": 2, "ast": 4, "stl": 1, "blk": 0, "tov": 2, "fgm": 3, "fga": 9, "tpm": 1, "tpa": 5, "ftm": 1, "fta": 2, "minutes": 18},
-                {"opponent": "Central Freshman", "pts": 15, "reb": 4, "ast": 2, "stl": 3, "blk": 1, "tov": 1, "fgm": 6, "fga": 11, "tpm": 2, "tpa": 6, "ftm": 1, "fta": 2, "minutes": 24},
+                {"opponent": "North Freshman",  "pts": 4,  "reb": 1, "ast": 2, "stl": 1, "blk": 0, "tov": 3, "fgm": 1, "fga": 6,  "tpm": 0, "tpa": 3, "ftm": 2, "fta": 4, "minutes": 14},
+                {"opponent": "East JV",         "pts": 12, "reb": 3, "ast": 3, "stl": 2, "blk": 0, "tov": 2, "fgm": 5, "fga": 10, "tpm": 2, "tpa": 5, "ftm": 0, "fta": 0, "minutes": 20},
+                {"opponent": "South Freshman",  "pts": 6,  "reb": 2, "ast": 1, "stl": 0, "blk": 0, "tov": 4, "fgm": 2, "fga": 8,  "tpm": 1, "tpa": 4, "ftm": 1, "fta": 2, "minutes": 16},
+                {"opponent": "West JV",         "pts": 8,  "reb": 2, "ast": 4, "stl": 1, "blk": 0, "tov": 2, "fgm": 3, "fga": 9,  "tpm": 1, "tpa": 5, "ftm": 1, "fta": 2, "minutes": 18},
+                {"opponent": "Central Freshman","pts": 15, "reb": 4, "ast": 2, "stl": 3, "blk": 1, "tov": 1, "fgm": 6, "fga": 11, "tpm": 2, "tpa": 6, "ftm": 1, "fta": 2, "minutes": 24},
+                {"opponent": "Lakeside Freshman","pts": 10,"reb": 3, "ast": 3, "stl": 1, "blk": 0, "tov": 2, "fgm": 4, "fga": 9,  "tpm": 1, "tpa": 4, "ftm": 1, "fta": 2, "minutes": 22},
+                {"opponent": "Oak JV",          "pts": 7,  "reb": 2, "ast": 2, "stl": 2, "blk": 0, "tov": 2, "fgm": 3, "fga": 8,  "tpm": 1, "tpa": 3, "ftm": 0, "fta": 1, "minutes": 20},
+                {"opponent": "Metro Freshman",  "pts": 13, "reb": 3, "ast": 3, "stl": 2, "blk": 0, "tov": 1, "fgm": 5, "fga": 10, "tpm": 2, "tpa": 5, "ftm": 1, "fta": 2, "minutes": 23},
+                {"opponent": "Franklin Frosh",  "pts": 9,  "reb": 4, "ast": 4, "stl": 1, "blk": 0, "tov": 2, "fgm": 4, "fga": 9,  "tpm": 1, "tpa": 4, "ftm": 0, "fta": 1, "minutes": 21},
+                {"opponent": "Summit Frosh",    "pts": 18, "reb": 3, "ast": 3, "stl": 2, "blk": 1, "tov": 1, "fgm": 7, "fga": 12, "tpm": 3, "tpa": 7, "ftm": 1, "fta": 2, "minutes": 26},
+                {"opponent": "Valley JV",       "pts": 14, "reb": 4, "ast": 5, "stl": 2, "blk": 0, "tov": 1, "fgm": 6, "fga": 11, "tpm": 2, "tpa": 6, "ftm": 0, "fta": 0, "minutes": 25},
             ],
         },
     ]
 
     created_players = []
-    base_date = date.today() - timedelta(days=25)
+    base_date = date.today() - timedelta(days=42)
 
     for player_data in demo_players:
         # Check if player with same name already exists for this user
@@ -724,7 +754,7 @@ async def seed_demo_players(
 
         # Add the predefined games for each player
         for i, game_data in enumerate(player_data["games"]):
-            game_date = base_date + timedelta(days=i * 4)
+            game_date = base_date + timedelta(days=i * 3)
             game = PlayerGame(
                 player_id=player.id,
                 game_date=game_date,
