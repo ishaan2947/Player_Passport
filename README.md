@@ -9,26 +9,44 @@ A full-stack basketball player development platform that tracks game stats, gene
 ![Docker](https://img.shields.io/badge/Docker-Compose-2496ED?logo=docker)
 ![CI](https://github.com/ishaaqj/player-passport/actions/workflows/ci.yml/badge.svg)
 
+![Dashboard](docs/screenshots/Dashboard.JPG)
+
 ---
 
 ## What It Does
 
-Coaches and players log game stats after each game. The platform processes those stats through an AI report engine to produce personalized development reports — including drill plans, strengths/weaknesses analysis, and progress metrics. Everything is visualized on a per-player dashboard with season trend charts, milestone badges, and a multi-player comparison view.
+Coaches and players log game stats after each game. The platform processes those stats through an AI report engine to produce personalized development reports — including drill plans, strengths/weaknesses analysis, and a College Fit Indicator. Everything is visualized on a per-player dashboard with season trend charts, milestone badges, and a multi-player comparison view.
+
+---
+
+## Screenshots
+
+**Season Trends** — interactive line chart with stat toggles and preset views
+
+![Season Trends](docs/screenshots/Player_Trends_Example.JPG)
+
+**AI Coaching Report** — growth summary, key metrics, recommended drills, and college fit indicator generated from game data
+
+![AI Report](docs/screenshots/Generated_Player_Report_pt1.JPG)
+
+**Player Comparison** — side-by-side bar chart across up to 4 players
+
+![Player Comparison](docs/screenshots/Player_Comparison.JPG)
 
 ---
 
 ## Features
 
 - **Game Log** — Record pts, reb, ast, stl, blk, tov, FG%, 3PM per game with inline editing
-- **AI Coaching Reports** — Generate structured development reports with drill plans and player analysis; poll for completion with animated progress bar
-- **Season Trends Chart** — Interactive Recharts line chart with stat toggles and preset views (scoring, defense, efficiency)
+- **AI Coaching Reports** — Structured development reports with drill plans, trend insights, and college fit indicator; animated progress bar while generating
+- **Season Trends Chart** — Interactive Recharts line chart with stat toggles and preset views (Scoring, All-Around, Efficiency)
 - **Milestone Badges** — 16 computed achievements (double-doubles, hot hand streaks, triple-doubles, efficiency badges, etc.)
 - **Goals Tracker** — Set personal stat targets with progress bars; persisted in localStorage
 - **Practice Plan Widget** — Pulls the latest report's drill plan directly onto the player dashboard
 - **Multi-Player Comparison** — Side-by-side bar chart comparison of up to 4 players across 8 key stats
 - **Report Sharing** — Share read-only reports via unique token links
 - **PDF Export** — Print-optimized report pages via `window.print()`
-- **PWA Ready** — Web app manifest included for installability
+- **PWA Ready** — Web app manifest for installability
 
 ---
 
@@ -59,14 +77,14 @@ docker compose up --build
 - API: http://localhost:8000
 - API docs: http://localhost:8000/docs
 
-**Seed demo data** (5 players, 11 games each):
+**Load demo data** (5 players, 11 games each — runs automatically on first boot in dev mode):
 
 ```bash
 curl -X POST http://localhost:8000/players/seed-demo \
   -H "Authorization: Bearer dev_user_seed_001"
 ```
 
-Then open http://localhost:3000/dashboard/players to explore.
+Then open http://localhost:3000/dashboard to explore.
 
 ---
 
